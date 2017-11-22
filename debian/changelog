@@ -1,0 +1,5 @@
+pve-xtermjs (0.1-1~rc1) unstable; urgency=medium
+
+  * initial package
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 20 Nov 2017 08:25:32 +0100

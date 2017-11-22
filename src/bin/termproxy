@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use PVE::AccessControl;
+
+use PVE::CLI::termproxy;
+
+PVE::CLI::termproxy->run_cli_handler();

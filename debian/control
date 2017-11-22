@@ -1,0 +1,15 @@
+Source: pve-xtermjs
+Section: web
+Priority: optional
+Maintainer: Proxmox Support Team <support@proxmox.com>
+Build-Depends: debhelper (>= 7.0.0~)
+Standards-Version: 3.8.3
+
+Package: pve-xtermjs
+Architecture: any
+Depends: dtach,
+         libpve-access-control (>= 5.0-7),
+         libpve-common-perl (>= 5.0-22),
+         ${misc:Depends}
+Description: HTML/JS Shell client
+ This is an xterm.js client for PVE Host, Container and Qemu Serial Terminal

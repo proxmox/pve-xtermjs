@@ -1,0 +1,32 @@
+xterm.js webclient and helper utility
+=====================================
+
+This repository contains the client and helper utility to use
+xterm.js (https://xtermjs.org) for Proxmox VE.
+
+To be able to relay between the gui and a shell program/console,
+we need a tool (called termproxy) to open a port (where our websocketproxy
+connects to) and to open a pty and execute a program
+
+From Client to Server it implements a simple packet-based protocol:
+(everything is a string)
+
+* Normal Message
+    0:LENGTH:MSG
+    where LENGTH is the bytelength of the msg
+
+* Resize Message
+    1:COLS:ROWS:
+    where COLS is the number of columns the client wants to resize to,
+    and ROWS the number of rows, respectively
+
+* Ping Message
+    2
+    used to keep the connection between client and server alive
+    (we have a timeout of 5 minutes)
+
+every other input from the client will be ignored
+
+From server to client, the data will simply sent, without any
+format
+
