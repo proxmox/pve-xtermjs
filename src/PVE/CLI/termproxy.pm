@@ -101,7 +101,7 @@ sub read_write_loop {
     my @handles;
 
     # we may have already messages from the first read
-    $queue = process_queue($queue, $cmdhandle);
+    $queue = process_queue($queue, $cmdhandle, $pty);
 
     my $timeout = 5*60;
 
