@@ -1,3 +1,13 @@
+pve-xtermjs (0.1-1) unstable; urgency=medium
+
+  * bump to 0.1-1
+
+  * update dependencies
+
+  * give pty object to process_queue on first call
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 04 Dec 2017 10:29:52 +0100
+
 pve-xtermjs (0.1-1~rc1) unstable; urgency=medium
 
   * initial package
