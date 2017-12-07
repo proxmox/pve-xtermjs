@@ -1,5 +1,5 @@
 PACKAGE=pve-xtermjs
-VER=0.1
+VER=1.0
 PKGREL=1
 VERSION=${VER}-${PKGREL}
 
