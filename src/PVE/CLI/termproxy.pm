@@ -6,21 +6,39 @@ use warnings;
 use PVE::RPCEnvironment;
 use PVE::CLIHandler;
 use PVE::JSONSchema qw(get_standard_option);
-use PVE::AccessControl;
 use PVE::PTY;
+use LWP::UserAgent;
 use IO::Select;
 use IO::Socket::IP;
 
 use base qw(PVE::CLIHandler);
 
 use constant MAX_QUEUE_LEN => 16*1024;
+use constant DEFAULT_PATH => '/';
+use constant DEFAULT_PERM => 'Sys.Console';
 
 sub setup_environment {
     PVE::RPCEnvironment->setup_default_cli_env();
 }
 
+sub verify_ticket {
+    my ($ticket, $user, $path, $perm) = @_;
+
+    my $ua = LWP::UserAgent->new();
+
+    my $res = $ua->post ('http://localhost:85/api2/json/access/ticket', Content => {
+			 username => $user,
+			 password => $ticket,
+			 path => $path,
+			 privs => $perm, });
+
+    if (!$res->is_success) {
+	die "Authentication failed: '$res->status_line'\n";
+    }
+}
+
 sub listen_and_authenticate {
-    my ($port, $timeout) = @_;
+    my ($port, $timeout, $path, $perm) = @_;
 
     my $params = {
 	Listen => 1,
@@ -42,13 +60,11 @@ sub listen_and_authenticate {
 
     my $queue;
     my $n = sysread($client, $queue, 4096);
-    if ($n && $queue =~ s/^([^:]+):([^:]+):(.+)\n//) {
+    if ($n && $queue =~ s/^([^:]+):(.+)\n//) {
 	my $user = $1;
-	my $path = $2;
-	my $ticket = $3;
+	my $ticket = $2;
 
-	die "authentication failed\n"
-	    if !PVE::AccessControl::verify_vnc_ticket($ticket, $user, $path);
+	verify_ticket($ticket, $user, $path, $perm);
 
 	die "aknowledge failed\n"
 	    if !syswrite($client, "OK");
@@ -194,6 +210,16 @@ __PACKAGE__->register_method ({
 		type => 'integer',
 		description => "The port to listen on."
 	    },
+	    path => {
+		type => 'string',
+		description => "The Authentication path. (default: '".DEFAULT_PATH."')",
+		default => DEFAULT_PATH,
+	    },
+	    perm => {
+		type => 'string',
+		description => "The Authentication Permission. (default: '".DEFAULT_PERM."')",
+		default => DEFAULT_PERM,
+	    },
 	    'extra-args' => get_standard_option('extra-args'),
 	},
     },
@@ -208,7 +234,9 @@ __PACKAGE__->register_method ({
 	    die "No command given\n";
 	}
 
-	my ($queue, $handle) = listen_and_authenticate($param->{port}, 10);
+	my $path = $param->{path} // DEFAULT_PATH;
+	my $perm = $param->{perm} // DEFAULT_PERM;
+	my ($queue, $handle) = listen_and_authenticate($param->{port}, 10, $path, $perm);
 
 	run_pty($cmd, $handle, $queue);
 

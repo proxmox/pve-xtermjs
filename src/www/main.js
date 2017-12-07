@@ -13,7 +13,6 @@ var term,
     socketURL,
     socket,
     ticket,
-    path,
     resize,
     ping,
     state = states.start;
@@ -89,18 +88,12 @@ function createTerminal() {
     switch (type) {
 	case 'kvm':
 	    url += '/qemu/' + vmid;
-	    path = '/vms/' + vmid;
 	    break;
 	case 'lxc':
 	    url += '/lxc/' + vmid;
-	    path = '/vms/' + vmid;
-	    break;
-	case 'shell': 
-	    path = '/nodes/' + nodename;
 	    break;
 	case 'upgrade':
 	    params.upgrade = 1;
-	    path = '/nodes/' + nodename;
 	    break;
     }
     API2Request({
@@ -161,7 +154,7 @@ function runTerminal() {
 	}, 250);
     });
 
-    socket.send(PVE.UserName + ':' + path + ':' + ticket + "\n");
+    socket.send(PVE.UserName + ':' + ticket + "\n");
 
     setTimeout(function() {term.fit();}, 250);
 }
