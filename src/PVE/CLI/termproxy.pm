@@ -3,7 +3,6 @@ package PVE::CLI::termproxy;
 use strict;
 use warnings;
 
-use PVE::RPCEnvironment;
 use PVE::CLIHandler;
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::PTY;
@@ -16,10 +15,6 @@ use base qw(PVE::CLIHandler);
 use constant MAX_QUEUE_LEN => 16*1024;
 use constant DEFAULT_PATH => '/';
 use constant DEFAULT_PERM => 'Sys.Console';
-
-sub setup_environment {
-    PVE::RPCEnvironment->setup_default_cli_env();
-}
 
 sub verify_ticket {
     my ($ticket, $user, $path, $perm) = @_;
