@@ -30,7 +30,8 @@ sub verify_ticket {
     my $res = $ua->post ('http://localhost:85/api2/json/access/ticket', Content => $params);
 
     if (!$res->is_success) {
-	die "Authentication failed: '$res->status_line'\n";
+	my $err = $res->status_line;
+	die "Authentication failed: '$err'\n";
     }
 }
 
