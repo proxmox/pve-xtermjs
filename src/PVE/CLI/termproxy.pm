@@ -13,19 +13,21 @@ use IO::Socket::IP;
 use base qw(PVE::CLIHandler);
 
 use constant MAX_QUEUE_LEN => 16*1024;
-use constant DEFAULT_PATH => '/';
-use constant DEFAULT_PERM => 'Sys.Console';
 
 sub verify_ticket {
     my ($ticket, $user, $path, $perm) = @_;
 
     my $ua = LWP::UserAgent->new();
 
-    my $res = $ua->post ('http://localhost:85/api2/json/access/ticket', Content => {
-			 username => $user,
-			 password => $ticket,
-			 path => $path,
-			 privs => $perm, });
+    my $params = {
+	username => $user,
+	password => $ticket,
+	path => $path,
+    };
+
+    $params->{privs} = $perm if $perm;
+
+    my $res = $ua->post ('http://localhost:85/api2/json/access/ticket', Content => $params);
 
     if (!$res->is_success) {
 	die "Authentication failed: '$res->status_line'\n";
@@ -207,13 +209,12 @@ __PACKAGE__->register_method ({
 	    },
 	    path => {
 		type => 'string',
-		description => "The Authentication path. (default: '".DEFAULT_PATH."')",
-		default => DEFAULT_PATH,
+		description => "The Authentication path.",
 	    },
 	    perm => {
 		type => 'string',
-		description => "The Authentication Permission. (default: '".DEFAULT_PERM."')",
-		default => DEFAULT_PERM,
+		description => "The Authentication Permission.",
+		optional => 1,
 	    },
 	    'extra-args' => get_standard_option('extra-args'),
 	},
@@ -229,9 +230,8 @@ __PACKAGE__->register_method ({
 	    die "No command given\n";
 	}
 
-	my $path = $param->{path} // DEFAULT_PATH;
-	my $perm = $param->{perm} // DEFAULT_PERM;
-	my ($queue, $handle) = listen_and_authenticate($param->{port}, 10, $path, $perm);
+	my ($queue, $handle) = listen_and_authenticate($param->{port}, 10,
+	    $param->{path}, $param->{perm});
 
 	run_pty($cmd, $handle, $queue);
 
