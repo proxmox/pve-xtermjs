@@ -65,6 +65,7 @@ function updateState(newState, msg) {
 
 var terminalContainer = document.getElementById('terminal-container');
 document.getElementById('status_bar').addEventListener('click', hideMsg);
+Terminal.applyAddon(fit);
 
 createTerminal();
 

@@ -1,6 +1,10 @@
 include defines.mk
 
-XTERMJSDIR=xtermjs
+XTERMJSVER=3.2.0
+XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
+XTERMJSDIR=package
+XTERMDATA = ${XTERMJSDIR}/dist/
+
 SRCDIR=src
 
 ARCH:=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
@@ -13,7 +17,7 @@ all: ${DEB}
 
 .PHONY: deb
 deb: ${DEB}
-${DEB}: | submodule
+${DEB}: ${XTERMDATA}
 	rm -rf ${SRCDIR}.tmp
 	cp -rpa ${SRCDIR} ${SRCDIR}.tmp
 	cp -a debian ${SRCDIR}.tmp/
@@ -23,13 +27,14 @@ ${DEB}: | submodule
 	lintian ${DEB}
 	@echo ${DEB}
 
-.PHONY: submodule
-submodule:
-	test -f "${XTERMJSDIR}/README.md" || git submodule update --init
+${XTERMDATA}: ${XTERMJSTGZ}
+	rm -rf ${XTTERMDIR}
+	tar -xf ${XTERMJSTGZ}
 
 .PHONY: download
 download ${SRCDIR}:
-	git submodule foreach 'git pull --ff-only origin master'
+	wget https://registry.npmjs.org/xterm/-/${XTERMJSTGZ} -O ${XTERMJSTGZ}.tmp
+	mv ${XTERMJSTGZ}.tmp ${XTERMJSTGZ}
 
 .PHONY: upload
 upload: ${DEB}
@@ -40,7 +45,7 @@ distclean: clean
 
 .PHONY: clean
 clean:
-	rm -rf *~ debian/*~ *_${ARCH}.deb ${SRCDIR}.tmp *_all.deb *.changes *.dsc *.buildinfo
+	rm -rf *~ debian/*~ *_${ARCH}.deb ${SRCDIR}.tmp ${XTERMJSDIR} *_all.deb *.changes *.dsc *.buildinfo
 
 .PHONY: dinstall
 dinstall: deb
