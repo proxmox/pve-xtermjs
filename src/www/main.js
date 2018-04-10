@@ -6,6 +6,7 @@ var states = {
     connected:     3,
     disconnecting: 4,
     disconnected:  5,
+    reconnecting:  6,
 };
 
 var term,
@@ -15,7 +16,13 @@ var term,
     ticket,
     resize,
     ping,
-    state = states.start;
+    state = states.start,
+    starttime = new Date();
+
+var type = getQueryParameter('console');
+var vmid = getQueryParameter('vmid');
+var vmname = getQueryParameter('vmname');
+var nodename = getQueryParameter('node');
 
 function updateState(newState, msg) {
     var timeout, severity, message;
@@ -33,18 +40,30 @@ function updateState(newState, msg) {
 	    timeout = 0;
 	    severity = severities.warning;
 	    break;
+	case states.reconnecting:
+	    message = "Reconnecting...";
+	    timeout = 0;
+	    severity = severities.warning;
+	    break;
 	case states.disconnected:
 	    switch (state) {
 		case states.start:
 		case states.connecting:
+		case states.reconnecting:
 		    message = "Connection failed";
 		    timeout = 0;
 		    severity = severities.error;
 		    break;
 		case states.connected:
 		case states.disconnecting:
-		    message = "Connection closed";
-		    timeout = 0;
+		    var time_since_started = new Date() - starttime;
+		    timeout = 5000;
+		    if (time_since_started > 5*1000) {
+			message = "Connection closed";
+		    } else {
+			message = "Connection failed";
+			severity = severities.error;
+		    }
 		    break;
 		case states.disconnected:
 		    // no state change
@@ -81,10 +100,6 @@ function createTerminal() {
     protocol = (location.protocol === 'https:') ? 'wss://' : 'ws://';
 
     var params = {};
-    var type = getQueryParameter('console');
-    var vmid = getQueryParameter('vmid');
-    var vmname = getQueryParameter('vmname');
-    var nodename = getQueryParameter('node');
     var url = '/nodes/' + nodename;
     switch (type) {
 	case 'kvm':
@@ -110,8 +125,8 @@ function createTerminal() {
 	    socket = new WebSocket(socketURL, 'binary');
 	    socket.binaryType = 'arraybuffer';
 	    socket.onopen = runTerminal;
-	    socket.onclose = stopTerminal;
-	    socket.onerror = errorTerminal;
+	    socket.onclose = tryReconnect;
+	    socket.onerror = tryReconnect;
 	    window.onbeforeunload = stopTerminal;
 	    updateState(states.connecting);
 	},
@@ -158,6 +173,111 @@ function runTerminal() {
     socket.send(PVE.UserName + ':' + ticket + "\n");
 
     setTimeout(function() {term.fit();}, 250);
+}
+
+function getLxcStatus(callback) {
+    API2Request({
+	method: 'GET',
+	url: '/nodes/' + nodename + '/lxc/' + vmid + '/status/current',
+	success: function(result) {
+	    if (typeof callback === 'function') {
+		callback(true, result);
+	    }
+	},
+	failure: function(msg) {
+	    if (typeof callback === 'function') {
+		callback(false, msg);
+	    }
+	}
+    });
+}
+
+function checkMigration() {
+    var apitype = type;
+    if (apitype === 'kvm') {
+	apitype = 'qemu';
+    }
+    API2Request({
+	method: 'GET',
+	params: {
+	    type: 'vm'
+	},
+	url: '/cluster/resources',
+	success: function(result) {
+	    // if not yet migrated , wait and try again
+	    // if not migrating and stopped, cancel
+	    // if started, connect
+	    result.data.forEach(function(entity) {
+		if (entity.id === (apitype + '/' + vmid)) {
+		    var started = entity.status === 'running';
+		    var migrated = entity.node !== nodename;
+		    if (migrated) {
+			if (started) {
+			    // goto different node
+			    location.href = '?console=' + type +
+				'&xtermjs=1&vmid=' + vmid + '&vmname=' +
+				vmname + '&node=' + entity.node;
+			} else {
+			    // wait again
+			    updateState(states.reconnecting, 'waiting for migration to finish...');
+			    setTimeout(checkMigration, 5000);
+			}
+		    } else {
+			if (type === 'lxc') {
+			    // we have to check the status of the
+			    // container to know if it has the
+			    // migration lock
+			    getLxcStatus(function(success, result) {
+				if (success) {
+				    if (result.data.lock === 'migrate') {
+					// still waiting
+					updateState(states.reconnecting, 'waiting for migration to finish...');
+					setTimeout(checkMigration, 5000);
+				    } else {
+					stopTerminal();
+				    }
+				} else {
+				    // probably the status call failed because
+				    // the ct is already somewhere else, so retry
+				    setTimeout(checkMigration, 1000);
+				}
+			    });
+			} else if (started) {
+			    // this happens if we have old data in
+			    // /cluster/resources, or the connection
+			    // disconnected, so simply try to reload here
+			    location.reload();
+			} else if (type === 'kvm') {
+			    // it seems the guest simply stopped
+			    stopTerminal();
+			}
+		    }
+
+		    return;
+		}
+	    });
+	},
+	failure: function(msg) {
+	    errorTerminal({msg: msg});
+	}
+    });
+}
+
+function tryReconnect() {
+    var time_since_started = new Date() - starttime;
+    var type = getQueryParameter('console');
+    if (time_since_started < 5*1000) { // 5 seconds
+	stopTerminal({});
+	return;
+    } else if (type === 'shell') {
+	updateState(states.reconnecting, 'trying to reconnect...');
+	setTimeout(function() {
+	    location.reload();
+	}, 1000);
+    }
+
+    updateState(states.disconnecting, 'Detecting migration...');
+    setTimeout(checkMigration, 5000);
 }
 
 function stopTerminal(event) {
