@@ -70,7 +70,7 @@ Terminal.applyAddon(fit);
 createTerminal();
 
 function createTerminal() {
-    term = new Terminal();
+    term = new Terminal(getTerminalSettings());
 
     term.on('resize', function (size) {
 	if (state === states.connected) {

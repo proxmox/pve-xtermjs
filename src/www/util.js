@@ -179,3 +179,17 @@ function API2Request(reqOpts) {
 	throw "unknown method";
     }
 }
+
+function getTerminalSettings() {
+    var res = {};
+    var settings = ['fontSize', 'fontFamily', 'letterSpacing', 'lineHeight'];
+    if(localStorage) {
+	settings.forEach(function(setting) {
+	    var val = localStorage.getItem('pve-xterm-' + setting);
+	    if (val !== undefined && val !== null) {
+		res[setting] = val;
+	    }
+	});
+    }
+    return res;
+}
