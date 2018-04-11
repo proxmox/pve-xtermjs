@@ -1,3 +1,11 @@
+pve-xtermjs (1.0-3) UNRELEASED; urgency=medium
+
+  * update to xterm.js 3.2.0
+
+  * implement reconnect logic
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 11 Apr 2018 14:32:28 +0200
+
 pve-xtermjs (1.0-2) unstable; urgency=medium
 
   * make perm an optional parameter
