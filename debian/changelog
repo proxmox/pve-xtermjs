@@ -1,4 +1,4 @@
-pve-xtermjs (1.0-3) UNRELEASED; urgency=medium
+pve-xtermjs (1.0-3) unstable; urgency=medium
 
   * update to xterm.js 3.2.0
 
