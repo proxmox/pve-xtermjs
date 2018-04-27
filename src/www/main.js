@@ -237,6 +237,9 @@ function checkMigration() {
 					// still waiting
 					updateState(states.reconnecting, 'waiting for migration to finish...');
 					setTimeout(checkMigration, 5000);
+				    } else if (started) {
+					// container was rebooted
+					location.reload();
 				    } else {
 					stopTerminal();
 				    }
