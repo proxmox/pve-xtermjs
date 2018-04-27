@@ -271,7 +271,7 @@ function tryReconnect() {
     var time_since_started = new Date() - starttime;
     var type = getQueryParameter('console');
     if (time_since_started < 5*1000) { // 5 seconds
-	stopTerminal({});
+	stopTerminal();
 	return;
     } else if (type === 'shell') {
 	updateState(states.reconnecting, 'trying to reconnect...');
@@ -285,6 +285,7 @@ function tryReconnect() {
 }
 
 function stopTerminal(event) {
+    event = event || {};
     term.off('resize');
     term.off('data');
     clearInterval(ping);
@@ -293,6 +294,7 @@ function stopTerminal(event) {
 }
 
 function errorTerminal(event) {
+    even = event || {};
     term.off('resize');
     term.off('data');
     clearInterval(ping);
