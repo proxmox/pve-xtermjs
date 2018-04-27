@@ -172,7 +172,11 @@ function runTerminal() {
 
     socket.send(PVE.UserName + ':' + ticket + "\n");
 
-    setTimeout(function() {term.fit();}, 250);
+    // initial focus and resize
+    setTimeout(function() {
+	term.focus();
+	term.fit();
+    }, 250);
 }
 
 function getLxcStatus(callback) {
