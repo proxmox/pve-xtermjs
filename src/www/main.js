@@ -58,7 +58,7 @@ function updateState(newState, msg) {
 		case states.disconnecting:
 		    var time_since_started = new Date() - starttime;
 		    timeout = 5000;
-		    if (time_since_started > 5*1000) {
+		    if (time_since_started > 5*1000 || type === 'shell') {
 			message = "Connection closed";
 		    } else {
 			message = "Connection failed";
@@ -273,14 +273,9 @@ function checkMigration() {
 function tryReconnect() {
     var time_since_started = new Date() - starttime;
     var type = getQueryParameter('console');
-    if (time_since_started < 5*1000) { // 5 seconds
+    if (time_since_started < 5*1000 || type === 'shell') { // 5 seconds
 	stopTerminal();
 	return;
-    } else if (type === 'shell') {
-	updateState(states.reconnecting, 'trying to reconnect...');
-	setTimeout(function() {
-	    location.reload();
-	}, 1000);
     }
 
     updateState(states.disconnecting, 'Detecting migration...');
