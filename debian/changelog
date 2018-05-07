@@ -1,3 +1,13 @@
+pve-xtermjs (1.0-4) unstable; urgency=medium
+
+  * reload on container reboot
+
+  * do not try to reconnect the host shell
+
+  * focus terminal when starting
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 07 May 2018 15:16:07 +0200
+
 pve-xtermjs (1.0-3) unstable; urgency=medium
 
   * update to xterm.js 3.2.0
