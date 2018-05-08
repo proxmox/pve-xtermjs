@@ -27,7 +27,7 @@ sub verify_ticket {
 
     $params->{privs} = $perm if $perm;
 
-    my $res = $ua->post ('http://localhost:85/api2/json/access/ticket', Content => $params);
+    my $res = $ua->post ('http://127.0.0.1:85/api2/json/access/ticket', Content => $params);
 
     if (!$res->is_success) {
 	my $err = $res->status_line;
