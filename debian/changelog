@@ -1,3 +1,9 @@
+pve-xtermjs (3.10.1-1) unstable; urgency=medium
+
+  * update to xterm.js 3.10.1
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 17 Jan 2019 16:38:51 +0100
+
 pve-xtermjs (1.0-5) unstable; urgency=medium
 
   * change localhost to 127.0.0.1
