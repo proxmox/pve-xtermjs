@@ -297,6 +297,6 @@ function errorTerminal(event) {
     term.off('data');
     clearInterval(ping);
     socket.close();
-    term.destroy();
+    term.dispose();
     updateState(states.disconnected, event.msg + event.code);
 }
