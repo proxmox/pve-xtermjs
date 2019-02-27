@@ -23,6 +23,7 @@ var type = getQueryParameter('console');
 var vmid = getQueryParameter('vmid');
 var vmname = getQueryParameter('vmname');
 var nodename = getQueryParameter('node');
+var cmd = getQueryParameter('cmd');
 
 function updateState(newState, msg) {
     var timeout, severity, message;
@@ -110,6 +111,9 @@ function createTerminal() {
 	    break;
 	case 'upgrade':
 	    params.upgrade = 1;
+	    break;
+	case 'cmd':
+	    params.cmd = decodeURI(cmd);
 	    break;
     }
     API2Request({
@@ -273,7 +277,7 @@ function checkMigration() {
 function tryReconnect() {
     var time_since_started = new Date() - starttime;
     var type = getQueryParameter('console');
-    if (time_since_started < 5*1000 || type === 'shell') { // 5 seconds
+    if (time_since_started < 5*1000 || type === 'shell' || type === 'cmd') { // 5 seconds
 	stopTerminal();
 	return;
     }
