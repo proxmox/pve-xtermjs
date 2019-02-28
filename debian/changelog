@@ -1,3 +1,9 @@
+pve-xtermjs (3.10.1-2) unstable; urgency=medium
+
+  * support new 'cmd' parameter
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 28 Feb 2019 11:13:08 +0100
+
 pve-xtermjs (3.10.1-1) unstable; urgency=medium
 
   * update to xterm.js 3.10.1
