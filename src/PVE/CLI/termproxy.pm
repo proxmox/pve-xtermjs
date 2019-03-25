@@ -14,8 +14,13 @@ use base qw(PVE::CLIHandler);
 
 use constant MAX_QUEUE_LEN => 16*1024;
 
+
 sub verify_ticket {
     my ($ticket, $user, $path, $perm) = @_;
+
+    local @LWP::Protocol::http::EXTRA_SOCK_OPTS = (
+	GetAddrInfoFlags => 0,
+    );
 
     my $ua = LWP::UserAgent->new();
 
