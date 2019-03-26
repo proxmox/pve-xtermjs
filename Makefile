@@ -32,7 +32,7 @@ ${XTERMDATA}: ${XTERMJSTGZ}
 	tar -xf ${XTERMJSTGZ}
 
 .PHONY: download
-download ${SRCDIR}:
+download ${XTERMJSTGZ}:
 	wget https://registry.npmjs.org/xterm/-/${XTERMJSTGZ} -O ${XTERMJSTGZ}.tmp
 	mv ${XTERMJSTGZ}.tmp ${XTERMJSTGZ}
 
