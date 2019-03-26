@@ -14,10 +14,11 @@ use base qw(PVE::CLIHandler);
 
 use constant MAX_QUEUE_LEN => 16*1024;
 
-
 sub verify_ticket {
     my ($ticket, $user, $path, $perm) = @_;
 
+    # get all loopback addresses even if no IPv4 or IPv6 address is setup on
+    # the host, IO::Socket::IP sets AI_ADDRCONFIG (man getaddrinfo) per default
     local @LWP::Protocol::http::EXTRA_SOCK_OPTS = (
 	GetAddrInfoFlags => 0,
     );
