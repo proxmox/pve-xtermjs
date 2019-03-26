@@ -11,5 +11,6 @@ Architecture: any
 Depends: libpve-common-perl (>= 5.0-23),
          libwww-perl,
          ${misc:Depends}
+         ${perl:Depends}
 Description: HTML/JS Shell client
  This is an xterm.js client for PVE Host, Container and Qemu Serial Terminal
