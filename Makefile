@@ -23,7 +23,7 @@ ${DEB}: ${XTERMDATA}
 	cp -a debian ${SRCDIR}.tmp/
 	cp -ar ${XTERMJSDIR}/dist/* ${SRCDIR}.tmp/www
 	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > ${SRCDIR}.tmp/debian/SOURCE
-	cd ${SRCDIR}.tmp; dpkg-buildpackage -rfakeroot -b -uc -us
+	cd ${SRCDIR}.tmp; dpkg-buildpackage -b -uc -us
 	lintian ${DEB}
 	@echo ${DEB}
 
