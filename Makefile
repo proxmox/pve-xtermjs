@@ -1,6 +1,6 @@
 include defines.mk
 
-XTERMJSVER=3.10.1
+XTERMJSVER=3.12.0
 XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
 XTERMJSDIR=package
 XTERMDATA = ${XTERMJSDIR}/dist/
