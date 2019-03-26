@@ -1,6 +1,6 @@
 PACKAGE=pve-xtermjs
-VER=3.10.1
-PKGREL=2
+VER=3.12.0
+PKGREL=1
 VERSION=${VER}-${PKGREL}
 
 BINDIR=${DESTDIR}/usr/bin
