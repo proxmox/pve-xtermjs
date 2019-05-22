@@ -8,25 +8,32 @@ XTERMJSVER=3.13.2
 XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
 
 SRCDIR=src
-
+BUILDDIR ?= ${PACKAGE}-${DEB_VERSION_UPSTREAM}
 GITVERSION:=$(shell cat .git/refs/heads/master)
 
 DEB=${PACKAGE}_${VERSION}_all.deb
+DSC=${PACKAGE}_${VERSION}.dsc
 
 all: ${DEB}
 	@echo ${DEB}
 
+${BUILDDIR}: ${SRCDIR} debian
+	rm -rf ${BUILDDIR}
+	rsync -a ${SRCDIR}/ debian ${BUILDDIR}
+	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > ${BUILDDIR}/debian/SOURCE
+
 .PHONY: deb
 deb: ${DEB}
-${DEB}:
-	rm -rf ${SRCDIR}.tmp
-	cp -rpa ${SRCDIR} ${SRCDIR}.tmp
-	cp -a debian ${SRCDIR}.tmp/
-	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > ${SRCDIR}.tmp/debian/SOURCE
-	cd ${SRCDIR}.tmp; dpkg-buildpackage -b -uc -us
+${DEB}: ${BUILDDIR}
+	cd ${BUILDDIR}; dpkg-buildpackage -b -uc -us
 	lintian ${DEB}
 	@echo ${DEB}
 
+.PHONY: dsc
+dsc: ${DSC}
+${DSC}: ${BUILDDIR}
+	cd ${BUILDDIR}; dpkg-buildpackage -S -us -uc -d
+	lintian ${DSC}
 
 X_EXCLUSIONS=--exclude=addons/attach --exclude=addons/fullscreen --exclude=addons/search \
   --exclude=addons/terminado --exclude=addons/webLinks --exclude=addons/zmodem
@@ -46,7 +53,7 @@ distclean: clean
 
 .PHONY: clean
 clean:
-	rm -rf *~ debian/*~ *_${ARCH}.deb ${SRCDIR}.tmp ${XTERMJSDIR} *_all.deb *.changes *.dsc *.buildinfo
+	rm -rf *~ debian/*~ ${PACKAGE}-*/ *.deb *.changes *.dsc *.tar.gz *.buildinfo
 
 .PHONY: dinstall
 dinstall: deb
