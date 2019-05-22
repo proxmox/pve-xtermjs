@@ -4,10 +4,8 @@ PACKAGE=pve-xtermjs
 
 export VERSION=${DEB_VERSION_UPSTREAM_REVISION}
 
-XTERMJSVER=3.12.0
+XTERMJSVER=3.13.2
 XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
-XTERMJSDIR=package
-XTERMDATA = ${XTERMJSDIR}/dist/
 
 SRCDIR=src
 
@@ -20,24 +18,24 @@ all: ${DEB}
 
 .PHONY: deb
 deb: ${DEB}
-${DEB}: ${XTERMDATA}
+${DEB}:
 	rm -rf ${SRCDIR}.tmp
 	cp -rpa ${SRCDIR} ${SRCDIR}.tmp
 	cp -a debian ${SRCDIR}.tmp/
-	cp -ar ${XTERMJSDIR}/dist/* ${SRCDIR}.tmp/www
 	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > ${SRCDIR}.tmp/debian/SOURCE
 	cd ${SRCDIR}.tmp; dpkg-buildpackage -b -uc -us
 	lintian ${DEB}
 	@echo ${DEB}
 
-${XTERMDATA}: ${XTERMJSTGZ}
-	rm -rf ${XTTERMDIR}
-	tar -xf ${XTERMJSTGZ}
 
+X_EXCLUSIONS=--exclude=addons/attach --exclude=addons/fullscreen --exclude=addons/search \
+  --exclude=addons/terminado --exclude=addons/webLinks --exclude=addons/zmodem
 .PHONY: download
-download ${XTERMJSTGZ}:
+download:
 	wget https://registry.npmjs.org/xterm/-/${XTERMJSTGZ} -O ${XTERMJSTGZ}.tmp
 	mv ${XTERMJSTGZ}.tmp ${XTERMJSTGZ}
+	tar -C $(SRCDIR)/www -xf ${XTERMJSTGZ} package/dist --strip-components=2 ${X_EXCLUSIONS}
+	rm ${XTERMJSTGZ}
 
 .PHONY: upload
 upload: ${DEB}
