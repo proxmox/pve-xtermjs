@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 10~),
 Standards-Version: 3.8.3
 
 Package: pve-xtermjs
-Architecture: any
+Architecture: all
 Depends: libpve-common-perl (>= 5.0-23),
          libwww-perl,
          ${misc:Depends}

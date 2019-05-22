@@ -1,4 +1,4 @@
-include ../../defines.mk
+WWWBASEDIR=${DESTDIR}/usr/share/pve-xtermjs
 
 SOURCE = \
 	addons/fit/fit.js \

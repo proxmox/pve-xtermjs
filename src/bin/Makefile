@@ -1,4 +1,4 @@
-include	 ../../defines.mk
+BINDIR=${DESTDIR}/usr/bin
 
 .PHONY: install
 install: termproxy

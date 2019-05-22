@@ -1,5 +1,3 @@
-include ../defines.mk
-
 all:
 
 .PHONY: install

@@ -1,4 +1,4 @@
-include ../../../defines.mk
+PERLLIBDIR=${DESTDIR}/usr/share/perl5
 
 all:
 

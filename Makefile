@@ -1,4 +1,8 @@
-include defines.mk
+include /usr/share/dpkg/pkg-info.mk
+
+PACKAGE=pve-xtermjs
+
+export VERSION=${DEB_VERSION_UPSTREAM_REVISION}
 
 XTERMJSVER=3.12.0
 XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
@@ -7,10 +11,9 @@ XTERMDATA = ${XTERMJSDIR}/dist/
 
 SRCDIR=src
 
-ARCH:=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
 GITVERSION:=$(shell cat .git/refs/heads/master)
 
-DEB=${PACKAGE}_${VERSION}_${ARCH}.deb
+DEB=${PACKAGE}_${VERSION}_all.deb
 
 all: ${DEB}
 	@echo ${DEB}

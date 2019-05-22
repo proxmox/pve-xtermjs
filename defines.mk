@@ -1,8 +1,0 @@
-PACKAGE=pve-xtermjs
-VER=3.12.0
-PKGREL=1
-VERSION=${VER}-${PKGREL}
-
-BINDIR=${DESTDIR}/usr/bin
-PERLLIBDIR=${DESTDIR}/usr/share/perl5
-WWWBASEDIR=${DESTDIR}/usr/share/${PACKAGE}
