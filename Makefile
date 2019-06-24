@@ -9,7 +9,7 @@ XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
 
 SRCDIR=src
 BUILDDIR ?= ${PACKAGE}-${DEB_VERSION_UPSTREAM}
-GITVERSION:=$(shell cat .git/refs/heads/master)
+GITVERSION:=$(shell git rev-parse HEAD)
 
 DEB=${PACKAGE}_${VERSION}_all.deb
 DSC=${PACKAGE}_${VERSION}.dsc
