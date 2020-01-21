@@ -1,7 +1,8 @@
 WWWBASEDIR=${DESTDIR}/usr/share/pve-xtermjs
 
 SOURCE = \
-	addons/fit/fit.js \
+	xterm-addon-fit.js \
+	xterm-addon-fit.js.map \
 	index.html.tpl \
 	main.js \
 	style.css \

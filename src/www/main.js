@@ -85,14 +85,15 @@ function updateState(newState, msg) {
 
 var terminalContainer = document.getElementById('terminal-container');
 document.getElementById('status_bar').addEventListener('click', hideMsg);
-Terminal.applyAddon(fit);
+const fitAddon = new FitAddon.FitAddon();
 
 createTerminal();
 
 function createTerminal() {
     term = new Terminal(getTerminalSettings());
+    term.loadAddon(fitAddon);
 
-    term.on('resize', function (size) {
+    term.onResize(function (size) {
 	if (state === states.connected) {
 	    socket.send("1:" + size.cols + ":" + size.rows + ":");
 	}
@@ -156,7 +157,7 @@ function runTerminal() {
 	}
     };
 
-    term.on('data', function(data) {
+    term.onData(function(data) {
 	if (state === states.connected) {
 	    socket.send("0:" + unescape(encodeURIComponent(data)).length.toString() + ":" +  data);
 	}
@@ -170,7 +171,7 @@ function runTerminal() {
 	clearTimeout(resize);
 	resize = setTimeout(function() {
 	    // done resizing
-	    term.fit();
+	    fitAddon.fit();
 	}, 250);
     });
 
@@ -179,7 +180,7 @@ function runTerminal() {
     // initial focus and resize
     setTimeout(function() {
 	term.focus();
-	term.fit();
+	fitAddon.fit();
     }, 250);
 }
 
@@ -286,10 +287,14 @@ function tryReconnect() {
     setTimeout(checkMigration, 5000);
 }
 
+function clearEvents() {
+    term.onResize(() => {});
+    term.onData(() => {});
+}
+
 function stopTerminal(event) {
     event = event || {};
-    term.off('resize');
-    term.off('data');
+    clearEvents();
     clearInterval(ping);
     socket.close();
     updateState(states.disconnected, event.msg + event.code);
@@ -297,8 +302,7 @@ function stopTerminal(event) {
 
 function errorTerminal(event) {
     even = event || {};
-    term.off('resize');
-    term.off('data');
+    clearEvents();
     clearInterval(ping);
     socket.close();
     term.dispose();
