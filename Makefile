@@ -4,8 +4,11 @@ PACKAGE=pve-xtermjs
 
 export VERSION=${DEB_VERSION_UPSTREAM_REVISION}
 
-XTERMJSVER=3.13.2
+XTERMJSVER=4.3.0
 XTERMJSTGZ=xterm-${XTERMJSVER}.tgz
+
+FITADDONVER=0.3.0
+FITADDONTGZ=xterm-addon-fit-${FITADDONVER}.tgz
 
 SRCDIR=src
 BUILDDIR ?= ${PACKAGE}-${DEB_VERSION_UPSTREAM}
@@ -40,9 +43,12 @@ X_EXCLUSIONS=--exclude=addons/attach --exclude=addons/fullscreen --exclude=addon
 .PHONY: download
 download:
 	wget https://registry.npmjs.org/xterm/-/${XTERMJSTGZ} -O ${XTERMJSTGZ}.tmp
+	wget https://registry.npmjs.org/xterm-addon-fit/-/${FITADDONTGZ} -O ${FITADDONTGZ}.tmp
 	mv ${XTERMJSTGZ}.tmp ${XTERMJSTGZ}
-	tar -C $(SRCDIR)/www -xf ${XTERMJSTGZ} package/dist --strip-components=2 ${X_EXCLUSIONS}
-	rm ${XTERMJSTGZ}
+	mv ${FITADDONTGZ}.tmp ${FITADDONTGZ}
+	tar -C $(SRCDIR)/www -xf ${XTERMJSTGZ} package/lib package/css --strip-components=2 ${X_EXCLUSIONS}
+	tar -C $(SRCDIR)/www -xf ${FITADDONTGZ} package/lib --strip-components=2 ${X_EXCLUSIONS}
+	rm ${XTERMJSTGZ} ${FITADDONTGZ}
 
 .PHONY: upload
 upload: ${DEB}
