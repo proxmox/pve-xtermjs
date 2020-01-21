@@ -144,11 +144,11 @@ function createTerminal() {
 
 function runTerminal() {
     socket.onmessage = function(event) {
-	var answer = Utf8ArrayToStr(event.data);
+	var answer = new Uint8Array(event.data);
 	if (state === states.connected) {
 	    term.write(answer);
 	} else if(state === states.connecting) {
-	    if (answer.slice(0,2) === "OK") {
+	    if (answer[0] === 79 && answer[1] === 75) { // "OK"
 		updateState(states.connected);
 		term.write(answer.slice(2));
 	    } else {

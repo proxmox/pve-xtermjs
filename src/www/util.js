@@ -69,57 +69,6 @@ function getQueryParameter(name) {
     return result;
 }
 
-var cur = 0;
-var left = 0;
-
-function Utf8ArrayToStr(arraybuffer) {
-    var array = new Uint8Array(arraybuffer),
-	i = 0,
-	len = array.byteLength,
-	out = "",
-	c;
-
-    while (i < len) {
-	c = array[i++];
-	if (!left && c < 0x80) {
-		out += String.fromCharCode(c);
-	} else if(!left) {
-	    switch (c >> 4) {
-		case 12: case 13:
-		    // 110x xxxx 10xx xxxx
-		    cur = (c & 0x1F) << 6;
-		    left = 1;
-		    break;
-		case 14:
-		    // 1110 xxxx 10xx xxxx 10xx xxxx
-		    cur = (c & 0x0F) << 12;
-		    left = 2;
-		    break;
-		case 15:
-		    // 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx
-		    cur = (c & 0x07) << 18;
-		    left = 3;
-		    break;
-		default:
-		    cur = 0;
-		    out += '\ufffd';
-	    }
-	} else if (c >= 0x80 && c <= 0xBF) {
-	    cur = cur | ((c & 0x3F) << (--left * 6));
-	    if (!left) {
-		out += String.fromCharCode(cur);
-		cur = 0;
-	    }
-	} else {
-	    cur = 0;
-	    left = 0;
-	    out += '\ufffd';
-	}
-    }
-
-    return out;
-}
-
 function API2Request(reqOpts) {
     var me = this;
 
