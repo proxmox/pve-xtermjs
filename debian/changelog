@@ -1,3 +1,9 @@
+pve-xtermjs (4.3.0-1) pve pmg; urgency=medium
+
+  * upgrade xterm.js to new upstream release 4.3.0
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 22 Jan 2020 12:17:59 +0100
+
 pve-xtermjs (3.13.2-1) pve pmg; urgency=medium
 
   * update sources to 3.13.2
