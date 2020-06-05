@@ -111,7 +111,7 @@ function createTerminal() {
 	    url += '/lxc/' + vmid;
 	    break;
 	case 'upgrade':
-	    params.upgrade = 1;
+	    params.cmd = 'upgrade';
 	    break;
 	case 'cmd':
 	    params.cmd = decodeURI(cmd);
