@@ -24,6 +24,7 @@ var vmid = getQueryParameter('vmid');
 var vmname = getQueryParameter('vmname');
 var nodename = getQueryParameter('node');
 var cmd = getQueryParameter('cmd');
+var cmdOpts = getQueryParameter('cmd-opts');
 
 function updateState(newState, msg) {
     var timeout, severity, message;
@@ -115,6 +116,9 @@ function createTerminal() {
 	    break;
 	case 'cmd':
 	    params.cmd = decodeURI(cmd);
+	    if (cmdOpts !== undefined) {
+		params['cmd-opts'] = decodeURI(cmdOpts);
+	    }
 	    break;
     }
     API2Request({
