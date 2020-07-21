@@ -35,6 +35,7 @@ function updateState(newState, msg, code) {
 	    severity = severities.warning;
 	    break;
 	case states.connected:
+	    window.onbeforeunload = windowUnload;
 	    message = "Connected";
 	    break;
 	case states.disconnecting:
@@ -48,6 +49,7 @@ function updateState(newState, msg, code) {
 	    severity = severities.warning;
 	    break;
 	case states.disconnected:
+	    window.onbeforeunload = undefined;
 	    switch (state) {
 		case states.start:
 		case states.connecting:
@@ -143,7 +145,6 @@ function createTerminal() {
 	    socket.onopen = runTerminal;
 	    socket.onclose = tryReconnect;
 	    socket.onerror = tryReconnect;
-	    window.onbeforeunload = stopTerminal;
 	    updateState(states.connecting);
 	},
 	failure: function(msg) {
@@ -301,6 +302,17 @@ function tryReconnect(event) {
 function clearEvents() {
     term.onResize(() => {});
     term.onData(() => {});
+}
+
+function windowUnload(e) {
+    let message = "Are you sure you want to leave this page?";
+
+    e = e || window.event;
+    if (e) {
+	e.returnValue = message;
+    }
+
+    return message;
 }
 
 function stopTerminal(event) {
