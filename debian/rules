@@ -6,4 +6,5 @@
 override_dh_auto_build:
 	dh_auto_build
 	sed -e 's/@VERSION@/${VERSION}/' src/www/index.html.tpl.in > src/www/index.html.tpl
-	rm src/www/index.html.tpl.in
+	sed -e 's/@VERSION@/${VERSION}/' src/www/index.html.hbs.in > src/www/index.html.hbs
+	rm src/www/index.html.tpl.in src/www/index.html.hbs.in

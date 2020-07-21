@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+    <head>
+	<title>{{ nodename }} - Proxmox Console</title>
+	<link rel="stylesheet" href="/xtermjs/xterm.css?version=@VERSION@" />
+	<link rel="stylesheet" href="/xtermjs/style.css?version=@VERSION@" />
+	<script src="/xtermjs/xterm.js?version=@VERSION@" ></script>
+	<script src="/xtermjs/xterm-addon-fit.js?version=@VERSION@" ></script>
+	<script src="/xtermjs/util.js?version=@VERSION@" ></script>
+    </head>
+    <body>
+	<div id="status_bar"></div>
+	<div id="wrap">
+	<div id="terminal-container"></div>
+	</div>
+	<script type="text/javascript">
+	    if (typeof(PVE) === 'undefined') PVE = {};
+	    PVE.UserName = '{{ UserName }}';
+	    PVE.CSRFPreventionToken = '{{ CSRFPreventionToken }}';
+	</script>
+	<script src="/xtermjs/main.js?version=@VERSION@" defer ></script>
+    </body>
+</html>
