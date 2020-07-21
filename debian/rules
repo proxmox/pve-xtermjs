@@ -1,4 +1,9 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@
+	dh $@ --buildsystem cargo
+
+override_dh_auto_build:
+	dh_auto_build
+	sed -e 's/@VERSION@/${VERSION}/' src/www/index.html.tpl.in > src/www/index.html.tpl
+	rm src/www/index.html.tpl.in

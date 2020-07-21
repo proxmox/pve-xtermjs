@@ -1,6 +1,8 @@
 include /usr/share/dpkg/pkg-info.mk
+include /usr/share/dpkg/architecture.mk
 
 PACKAGE=pve-xtermjs
+CRATENAME=termproxy
 
 export VERSION=${DEB_VERSION_UPSTREAM_REVISION}
 
@@ -11,31 +13,53 @@ FITADDONVER=0.4.0
 FITADDONTGZ=xterm-addon-fit-${FITADDONVER}.tgz
 
 SRCDIR=src
-BUILDDIR ?= ${PACKAGE}-${DEB_VERSION_UPSTREAM}
 GITVERSION:=$(shell git rev-parse HEAD)
 
-DEB=${PACKAGE}_${VERSION}_all.deb
-DSC=${PACKAGE}_${VERSION}.dsc
+DEB=${PACKAGE}_${DEB_VERSION_UPSTREAM_REVISION}_${DEB_BUILD_ARCH}.deb
+DSC=rust-${CRATENAME}_${DEB_VERSION_UPSTREAM_REVISION}.dsc
 
-all: ${DEB}
-	@echo ${DEB}
+ifeq ($(BUILD_MODE), release)
+CARGO_BUILD_ARGS += --release
+COMPILEDIR := target/release
+else
+COMPILEDIR := target/debug
+endif
 
-${BUILDDIR}: ${SRCDIR} debian
-	rm -rf ${BUILDDIR}
-	rsync -a ${SRCDIR}/ debian ${BUILDDIR}
-	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > ${BUILDDIR}/debian/SOURCE
+all: cargo-build $(SRCIDR)
+
+.PHONY: $(SUBDIRS)
+$(SUBDIRS):
+	make -C $@
+
+.PHONY: cargo-build
+cargo-build:
+	cargo build $(CARGO_BUILD_ARGS)
+
+.PHONY: build
+build:
+	rm -rf build
+	debcargo package \
+	--config debian/debcargo.toml \
+	--changelog-ready \
+	--no-overlay-write-back \
+	--directory build \
+	$(CRATENAME) \
+	$(shell dpkg-parsechangelog -l debian/changelog -SVersion | sed -e 's/-.*//')
+	rm build/Cargo.lock
+	find build/debian -name "*.hint" -delete
+	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > build/debian/SOURCE
 
 .PHONY: deb
 deb: ${DEB}
-${DEB}: ${BUILDDIR}
-	cd ${BUILDDIR}; dpkg-buildpackage -b -uc -us
+$(DEB): build
+	cd build; dpkg-buildpackage -b -uc -us --no-pre-clean
 	lintian ${DEB}
 	@echo ${DEB}
 
 .PHONY: dsc
 dsc: ${DSC}
-${DSC}: ${BUILDDIR}
-	cd ${BUILDDIR}; dpkg-buildpackage -S -us -uc -d
+$(DSC): build
+	cd build; dpkg-buildpackage -S -us -uc -d -nc
 	lintian ${DSC}
 
 X_EXCLUSIONS=--exclude=addons/attach --exclude=addons/fullscreen --exclude=addons/search \
@@ -59,7 +83,7 @@ distclean: clean
 
 .PHONY: clean
 clean:
-	rm -rf *~ debian/*~ ${PACKAGE}-*/ *.deb *.changes *.dsc *.tar.gz *.buildinfo
+	rm -rf *~ debian/*~ ${PACKAGE}-*/ build/ *.deb *.changes *.dsc *.tar.?z *.buildinfo
 
 .PHONY: dinstall
 dinstall: deb
