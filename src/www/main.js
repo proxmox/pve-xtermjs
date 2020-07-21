@@ -26,7 +26,7 @@ var nodename = getQueryParameter('node');
 var cmd = getQueryParameter('cmd');
 var cmdOpts = getQueryParameter('cmd-opts');
 
-function updateState(newState, msg) {
+function updateState(newState, msg, code) {
     var timeout, severity, message;
     switch (newState) {
 	case states.connecting:
@@ -77,8 +77,15 @@ function updateState(newState, msg) {
 	default:
 	    throw "unknown state";
     }
+    let msgArr = [];
     if (msg) {
-	message += " (" + msg + ")";
+	msgArr.push(msg);
+    }
+    if (code !== undefined) {
+	msgArr.push(`Code: ${code}`);
+    }
+    if (msgArr.length > 0) {
+	message += ` (${msgArr.join(', ')})`;
     }
     state = newState;
     showMsg(message, timeout, severity);
@@ -279,11 +286,11 @@ function checkMigration() {
     });
 }
 
-function tryReconnect() {
+function tryReconnect(event) {
     var time_since_started = new Date() - starttime;
     var type = getQueryParameter('console');
     if (time_since_started < 5*1000 || type === 'shell' || type === 'cmd') { // 5 seconds
-	stopTerminal();
+	stopTerminal(event);
 	return;
     }
 
@@ -301,7 +308,7 @@ function stopTerminal(event) {
     clearEvents();
     clearInterval(ping);
     socket.close();
-    updateState(states.disconnected, event.msg + event.code);
+    updateState(states.disconnected, event.reason, event.code);
 }
 
 function errorTerminal(event) {
@@ -310,5 +317,5 @@ function errorTerminal(event) {
     clearInterval(ping);
     socket.close();
     term.dispose();
-    updateState(states.disconnected, event.msg + event.code);
+    updateState(states.disconnected, event.msg, event.code);
 }
