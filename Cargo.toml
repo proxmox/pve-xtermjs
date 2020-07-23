@@ -1,7 +1,10 @@
 [package]
 name = "termproxy"
-version = "4.3.0"
-authors = ["Dominik Csapak <d.csapak@proxmox.com>"]
+version = "4.7.0"
+authors = [
+    "Dominik Csapak <d.csapak@proxmox.com>",
+    "for xterm.js parts: The xterm.js authors <https://github.com/xtermjs/xterm.js>",
+]
 edition = "2018"
 license = "AGPL-3"
 

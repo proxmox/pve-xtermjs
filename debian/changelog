@@ -1,3 +1,11 @@
+rust-termproxy (4.7.0-1) pve pmg; urgency=medium
+
+  * upgrade xterm.js to new upstream release 4.3.0
+
+  * rewrite system console wrapper in rust
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 23 Jul 2020 12:20:16 +0200
+
 pve-xtermjs (4.3.0-1) pve pmg; urgency=medium
 
   * upgrade xterm.js to new upstream release 4.3.0
