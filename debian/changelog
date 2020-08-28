@@ -1,3 +1,9 @@
+rust-termproxy (4.7.0-2) pve pmg; urgency=medium
+
+  * fix corner case handling of pre-defined command options
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 28 Aug 2020 13:51:42 +0200
+
 rust-termproxy (4.7.0-1) pve pmg; urgency=medium
 
   * upgrade xterm.js to new upstream release 4.3.0
