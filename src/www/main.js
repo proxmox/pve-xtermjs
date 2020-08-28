@@ -125,7 +125,7 @@ function createTerminal() {
 	    break;
 	case 'cmd':
 	    params.cmd = decodeURI(cmd);
-	    if (cmdOpts !== undefined) {
+	    if (cmdOpts !== undefined && cmdOpts !== null && cmdOpts !== "") {
 		params['cmd-opts'] = decodeURI(cmdOpts);
 	    }
 	    break;
