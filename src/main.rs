@@ -1,7 +1,7 @@
 use std::cmp::min;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
-use std::io::{ErrorKind, Read, Result, Write};
+use std::io::{ErrorKind, Result, Write};
 use std::net::TcpStream;
 use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::os::unix::process::CommandExt;
