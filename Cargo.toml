@@ -14,4 +14,4 @@ exclude = [ "build", "debian" ]
 mio = "0.6"
 curl = "0.4"
 clap = "2.33"
-proxmox = { version = "0.3.4", default-features = false }
+proxmox = { version = "0.7.0", default-features = false }
