@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-	<title>{{ nodename }} - Proxmox Console</title>
+	<title>{{ NodeName }} - Proxmox Console</title>
 	<link rel="stylesheet" href="/xtermjs/xterm.css?version=@VERSION@" />
 	<link rel="stylesheet" href="/xtermjs/style.css?version=@VERSION@" />
 	<script src="/xtermjs/xterm.js?version=@VERSION@" ></script>
