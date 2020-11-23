@@ -39,11 +39,13 @@ function updateState(newState, msg, code) {
 	    message = "Connected";
 	    break;
 	case states.disconnecting:
+	    window.onbeforeunload = undefined;
 	    message = "Disconnecting...";
 	    timeout = 0;
 	    severity = severities.warning;
 	    break;
 	case states.reconnecting:
+	    window.onbeforeunload = undefined;
 	    message = "Reconnecting...";
 	    timeout = 0;
 	    severity = severities.warning;
