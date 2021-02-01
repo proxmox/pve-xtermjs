@@ -92,19 +92,40 @@ fn read_ticket_line(
     buf: &mut ByteBuffer,
     timeout: Duration,
 ) -> TicketResult {
-    let now = Instant::now();
-    while !&buf[..].contains(&b'\n') {
-        if buf.is_full() || now.elapsed() >= timeout {
-            io_bail!("authentication data is incomplete: {:?}", &buf[..]);
-        }
-        match buf.read_from(stream) {
-            Ok(n) => {
-                if n == 0 {
-                    io_bail!("connection closed before authentication");
+
+    let mut poll = Poll::new()?;
+    poll.registry().register(stream, Token(0), Interest::READABLE)?;
+    let mut events = Events::with_capacity(1);
+    let mut timeout = timeout;
+
+    loop {
+        let now = Instant::now();
+        poll.poll(&mut events, Some(timeout))?;
+        let elapsed = now.elapsed();
+        if !events.is_empty() {
+            match buf.read_from(stream) {
+                Ok(n) => {
+                    if n == 0 {
+                        io_bail!("connection closed before authentication");
+                    }
                 }
+                Err(err) if err.kind() == ErrorKind::WouldBlock => {}
+                Err(err) => return Err(err),
             }
-            Err(err) if err.kind() == ErrorKind::WouldBlock => {}
-            Err(err) => return Err(err),
+
+            if buf[..].contains(&b'\n') {
+                break;
+            }
+
+            if buf.is_full() {
+                io_bail!("authentication data is incomplete: {:?}", &buf[..]);
+            }
+        }
+
+        if timeout >= elapsed {
+            timeout -= elapsed;
+        } else {
+            io_bail!("timed out");
         }
     }
 
