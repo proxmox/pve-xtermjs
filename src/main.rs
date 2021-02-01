@@ -2,7 +2,6 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
 use std::io::{ErrorKind, Result, Write};
-use std::net::TcpStream;
 use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::os::unix::process::CommandExt;
 use std::process::Command;
@@ -10,9 +9,9 @@ use std::time::{Duration, Instant};
 
 use clap::{App, AppSettings, Arg};
 use curl::easy::Easy;
-use mio::net::TcpListener;
-use mio::unix::{EventedFd, UnixReady};
-use mio::{Events, Poll, PollOpt, Ready, Token};
+use mio::net::{TcpListener, TcpStream};
+use mio::{Events, Poll, Token, Interest};
+use mio::unix::SourceFd;
 
 use proxmox::sys::error::io_err_other;
 use proxmox::sys::linux::pty::{make_controlling_terminal, PTY};
@@ -98,7 +97,6 @@ fn read_ticket_line(
         if buf.is_full() || now.elapsed() >= timeout {
             io_bail!("authentication data is incomplete: {:?}", &buf[..]);
         }
-        stream.set_read_timeout(Some(Duration::new(1, 0)))?;
         match buf.read_from(stream) {
             Ok(n) => {
                 if n == 0 {
@@ -110,7 +108,6 @@ fn read_ticket_line(
         }
     }
 
-    stream.set_read_timeout(None)?;
     let newline_idx = &buf[..].iter().position(|&x| x == b'\n').unwrap();
 
     let line = buf.remove_data(*newline_idx);
@@ -182,10 +179,10 @@ fn listen_and_accept(
         std::net::TcpListener::bind((hostname, port as u16))?
     };
     let port = listener.local_addr()?.port();
-    let listener = TcpListener::from_std(listener)?;
-    let poll = Poll::new()?;
+    let mut listener = TcpListener::from_std(listener);
+    let mut poll = Poll::new()?;
 
-    poll.register(&listener, Token(0), Ready::readable(), PollOpt::edge())?;
+    poll.registry().register(&mut listener, Token(0), Interest::READABLE)?;
 
     let mut events = Events::with_capacity(1);
 
@@ -195,7 +192,7 @@ fn listen_and_accept(
         poll.poll(&mut events, Some(timeout))?;
         let elapsed = now.elapsed();
         if !events.is_empty() {
-            let (stream, client) = listener.accept_std()?;
+            let (stream, client) = listener.accept()?;
             println!("client connection: {:?}", client);
             return Ok((stream, port));
         }
@@ -287,34 +284,30 @@ fn do_main() -> Result<()> {
         return Err(io_format_err!("Invalid FD number"));
     }
 
-    let (mut stream, port) =
+    let (mut tcp_handle, port) =
         listen_and_accept("localhost", port, use_port_as_fd, Duration::new(10, 0))
             .map_err(|err| io_format_err!("failed waiting for client: {}", err))?;
 
-    let (username, ticket) = read_ticket_line(&mut stream, &mut pty_buf, Duration::new(10, 0))
+    let (username, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
         .map_err(|err| io_format_err!("failed reading ticket: {}", err))?;
     let port = if use_port_as_fd { Some(port) } else { None };
     authenticate(&username, &ticket, path, perm, authport, port)?;
-    stream.write_all(b"OK").expect("error writing response");
+    tcp_handle.write_all(b"OK").expect("error writing response");
 
-    let mut tcp_handle = mio::net::TcpStream::from_stream(stream)?;
-
-    let poll = Poll::new()?;
+    let mut poll = Poll::new()?;
     let mut events = Events::with_capacity(128);
 
     let mut pty = run_pty(cmd, cmdparams)?;
 
-    poll.register(
-        &tcp_handle,
+    poll.registry().register(
+        &mut tcp_handle,
         TCP,
-        Ready::readable() | Ready::writable() | UnixReady::hup(),
-        PollOpt::edge(),
+        Interest::READABLE.add(Interest::WRITABLE)
     )?;
-    poll.register(
-        &EventedFd(&pty.as_raw_fd()),
+    poll.registry().register(
+        &mut SourceFd(&pty.as_raw_fd()),
         PTY,
-        Ready::readable() | Ready::writable() | UnixReady::hup(),
-        PollOpt::edge(),
+        Interest::READABLE.add(Interest::WRITABLE)
     )?;
 
     let mut tcp_writable = true;
@@ -332,10 +325,9 @@ fn do_main() -> Result<()> {
         }
 
         for event in &events {
-            let readiness = event.readiness();
-            let writable = readiness.is_writable();
-            let readable = readiness.is_readable();
-            if UnixReady::from(readiness).is_hup() {
+            let writable = event.is_writable();
+            let readable = event.is_readable();
+            if event.is_read_closed() {
                 finished = true;
             }
             match event.token() {
