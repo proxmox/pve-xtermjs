@@ -322,12 +322,12 @@ fn do_main() -> Result<()> {
     poll.registry().register(
         &mut tcp_handle,
         TCP,
-        Interest::READABLE.add(Interest::WRITABLE)
+        Interest::READABLE | Interest::WRITABLE,
     )?;
     poll.registry().register(
         &mut SourceFd(&pty.as_raw_fd()),
         PTY,
-        Interest::READABLE.add(Interest::WRITABLE)
+        Interest::READABLE | Interest::WRITABLE,
     )?;
 
     let mut tcp_writable = true;
