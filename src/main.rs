@@ -10,8 +10,8 @@ use std::time::{Duration, Instant};
 use clap::{App, AppSettings, Arg};
 use curl::easy::Easy;
 use mio::net::{TcpListener, TcpStream};
-use mio::{Events, Poll, Token, Interest};
 use mio::unix::SourceFd;
+use mio::{Events, Interest, Poll, Token};
 
 use proxmox::sys::error::io_err_other;
 use proxmox::sys::linux::pty::{make_controlling_terminal, PTY};
@@ -92,9 +92,9 @@ fn read_ticket_line(
     buf: &mut ByteBuffer,
     timeout: Duration,
 ) -> TicketResult {
-
     let mut poll = Poll::new()?;
-    poll.registry().register(stream, Token(0), Interest::READABLE)?;
+    poll.registry()
+        .register(stream, Token(0), Interest::READABLE)?;
     let mut events = Events::with_capacity(1);
 
     let now = Instant::now();
@@ -202,7 +202,8 @@ fn listen_and_accept(
     let mut listener = TcpListener::from_std(listener);
     let mut poll = Poll::new()?;
 
-    poll.registry().register(&mut listener, Token(0), Interest::READABLE)?;
+    poll.registry()
+        .register(&mut listener, Token(0), Interest::READABLE)?;
 
     let mut events = Events::with_capacity(1);
 
