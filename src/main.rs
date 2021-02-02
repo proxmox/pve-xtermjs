@@ -96,12 +96,12 @@ fn read_ticket_line(
     let mut poll = Poll::new()?;
     poll.registry().register(stream, Token(0), Interest::READABLE)?;
     let mut events = Events::with_capacity(1);
-    let mut timeout = timeout;
+
+    let now = Instant::now();
+    let mut elapsed = Duration::new(0, 0);
 
     loop {
-        let now = Instant::now();
-        poll.poll(&mut events, Some(timeout))?;
-        let elapsed = now.elapsed();
+        poll.poll(&mut events, Some(timeout - elapsed))?;
         if !events.is_empty() {
             match buf.read_from(stream) {
                 Ok(n) => {
@@ -122,9 +122,8 @@ fn read_ticket_line(
             }
         }
 
-        if timeout >= elapsed {
-            timeout -= elapsed;
-        } else {
+        elapsed = now.elapsed();
+        if elapsed > timeout {
             io_bail!("timed out");
         }
     }
@@ -207,19 +206,19 @@ fn listen_and_accept(
 
     let mut events = Events::with_capacity(1);
 
-    let mut timeout = timeout;
+    let now = Instant::now();
+    let mut elapsed = Duration::new(0, 0);
+
     loop {
-        let now = Instant::now();
-        poll.poll(&mut events, Some(timeout))?;
-        let elapsed = now.elapsed();
+        poll.poll(&mut events, Some(timeout - elapsed))?;
         if !events.is_empty() {
             let (stream, client) = listener.accept()?;
             println!("client connection: {:?}", client);
             return Ok((stream, port));
         }
-        if timeout >= elapsed {
-            timeout -= elapsed;
-        } else {
+
+        elapsed = now.elapsed();
+        if elapsed > timeout {
             io_bail!("timed out");
         }
     }
