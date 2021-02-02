@@ -38,6 +38,7 @@ cargo-build:
 .PHONY: build
 build:
 	rm -rf build
+	rm -f debian/control
 	debcargo package \
 	--config debian/debcargo.toml \
 	--changelog-ready \
@@ -47,6 +48,7 @@ build:
 	$(shell dpkg-parsechangelog -l debian/changelog -SVersion | sed -e 's/-.*//')
 	rm build/Cargo.lock
 	find build/debian -name "*.hint" -delete
+	cp build/debian/control debian/control
 	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout ${GITVERSION}" > build/debian/SOURCE
 
 .PHONY: deb
