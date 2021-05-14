@@ -1,3 +1,11 @@
+rust-termproxy (4.12.0-1) bullseye; urgency=medium
+
+  * upgrade xterm.js to new upstream release 4.12.0
+
+  * re-build for Debian 11 Bullseye based releases
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 14 May 2021 08:26:36 +0200
+
 rust-termproxy (4.7.0-3) pve pmg; urgency=medium
 
   * fix console window title for rust template
