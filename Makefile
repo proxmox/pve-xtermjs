@@ -40,12 +40,12 @@ build:
 	rm -rf build
 	rm -f debian/control
 	debcargo package \
-	--config debian/debcargo.toml \
-	--changelog-ready \
-	--no-overlay-write-back \
-	--directory build \
-	$(CRATENAME) \
-	$(shell dpkg-parsechangelog -l debian/changelog -SVersion | sed -e 's/-.*//')
+	  --config debian/debcargo.toml \
+	  --changelog-ready \
+	  --no-overlay-write-back \
+	  --directory build \
+	  $(CRATENAME) \
+	  $(shell dpkg-parsechangelog -l debian/changelog -SVersion | sed -e 's/-.*//')
 	rm build/Cargo.lock
 	find build/debian -name "*.hint" -delete
 	cp build/debian/control debian/control
