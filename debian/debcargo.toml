@@ -9,6 +9,6 @@ homepage = "http://www.proxmox.com"
 vcs_git = "git://git.proxmox.com/git/pve-xtermjs.git"
 vcs_browser = "https://git.proxmox.com/?p=pve-xtermjs.git;a=summary"
 
-[package]
+[packages.bin]
 summary = "HTML/JS Shell client"
 description = "This is an xterm.js client/proxy for Proxmox Hosts, PVE containers or QEMU Serial Terminals"
