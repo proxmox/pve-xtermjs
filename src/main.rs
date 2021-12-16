@@ -13,10 +13,12 @@ use mio::net::{TcpListener, TcpStream};
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
 
-use proxmox::sys::error::io_err_other;
-use proxmox::sys::linux::pty::{make_controlling_terminal, PTY};
-use proxmox::tools::byte_buffer::ByteBuffer;
-use proxmox::{io_bail, io_format_err};
+use proxmox_io::ByteBuffer;
+use proxmox_sys::{
+    error::io_err_other,
+    io_bail, io_format_err,
+    linux::pty::{make_controlling_terminal, PTY},
+};
 
 const MSG_TYPE_DATA: u8 = 0;
 const MSG_TYPE_RESIZE: u8 = 1;
