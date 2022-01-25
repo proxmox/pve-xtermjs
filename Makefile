@@ -16,6 +16,7 @@ SRCDIR=src
 GITVERSION:=$(shell git rev-parse HEAD)
 
 DEB=${PACKAGE}_${DEB_VERSION_UPSTREAM_REVISION}_${DEB_BUILD_ARCH}.deb
+DBG_DEB=${PACKAGE}-dbgsym_${DEB_VERSION_UPSTREAM_REVISION}_${DEB_BUILD_ARCH}.deb
 DSC=rust-${CRATENAME}_${DEB_VERSION_UPSTREAM_REVISION}.dsc
 
 ifeq ($(BUILD_MODE), release)
@@ -53,7 +54,7 @@ build:
 
 .PHONY: deb
 deb: ${DEB}
-$(DEB): build
+${DEB} ${DBG_DEB}: build
 	cd build; dpkg-buildpackage -b -uc -us --no-pre-clean
 	lintian ${DEB}
 	@echo ${DEB}
@@ -77,8 +78,8 @@ download:
 	rm ${XTERMJSTGZ} ${FITADDONTGZ}
 
 .PHONY: upload
-upload: ${DEB}
-	tar cf - ${DEB}|ssh -X repoman@repo.proxmox.com -- upload --product pmg,pve --dist buster
+upload: ${DEB} ${DBG_DEB}
+	tar cf - ${DEB} ${DBG_DEB} |ssh -X repoman@repo.proxmox.com -- upload --product pmg,pve,pbs --dist bullseye
 
 .PHONY: distclean
 distclean: clean
