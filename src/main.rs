@@ -9,7 +9,6 @@ use std::time::{Duration, Instant};
 
 use anyhow::{bail, format_err, Result};
 use clap::{App, AppSettings, Arg};
-use curl::easy::Easy;
 use mio::net::{TcpListener, TcpStream};
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
@@ -152,41 +151,29 @@ fn authenticate(
     authport: u16,
     port: Option<u16>,
 ) -> Result<()> {
-    let mut curl = Easy::new();
-    curl.url(&format!(
-        "http://localhost:{}/api2/json/access/ticket",
-        authport
-    ))?;
-
-    let username = curl.url_encode(username);
-    let ticket = curl.url_encode(ticket);
-    let path = curl.url_encode(path.as_bytes());
-
-    let mut post_fields = Vec::with_capacity(5);
-    post_fields.push(format!("username={}", username));
-    post_fields.push(format!("password={}", ticket));
-    post_fields.push(format!("path={}", path));
-
+    let mut post_fields: Vec<(&str, &str)> = Vec::with_capacity(5);
+    post_fields.push(("username", std::str::from_utf8(username)?));
+    post_fields.push(("password", std::str::from_utf8(ticket)?));
+    post_fields.push(("path", path));
     if let Some(perm) = perm {
-        let perm = curl.url_encode(perm.as_bytes());
-        post_fields.push(format!("privs={}", perm));
+        post_fields.push(("privs", perm));
     }
-
+    let port_str;
     if let Some(port) = port {
-        post_fields.push(format!("port={}", port));
+        port_str = port.to_string();
+        post_fields.push(("port", &port_str));
     }
 
-    curl.post_fields_copy(post_fields.join("&").as_bytes())?;
-    curl.post(true)?;
-    curl.perform()?;
+    let url = format!("http://localhost:{}/api2/json/access/ticket", authport);
 
-    let response_code = curl.response_code()?;
-
-    if response_code != 200 {
-        bail!("invalid authentication, code {}", response_code);
+    match ureq::post(&url).send_form(&post_fields[..]) {
+        Ok(res) if res.status() == 200 => Ok(()),
+        Ok(res) | Err(ureq::Error::Status(_, res)) => {
+            let code = res.status();
+            bail!("invalid authentication - {} {}", code, res.status_text())
+        }
+        Err(err) => bail!("authentication request failed - {}", err),
     }
-
-    Ok(())
 }
 
 fn listen_and_accept(
