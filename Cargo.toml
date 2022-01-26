@@ -11,6 +11,7 @@ license = "AGPL-3"
 exclude = [ "build", "debian" ]
 
 [dependencies]
+anyhow = "1"
 mio = { version = "0.7", features = [ "net", "os-ext" ] }
 curl = "0.4"
 clap = "2.33"

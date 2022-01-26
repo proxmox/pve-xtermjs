@@ -1,12 +1,13 @@
 use std::cmp::min;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
-use std::io::{ErrorKind, Result, Write};
+use std::io::{ErrorKind, Write};
 use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::os::unix::process::CommandExt;
 use std::process::Command;
 use std::time::{Duration, Instant};
 
+use anyhow::{bail, format_err, Result};
 use clap::{App, AppSettings, Arg};
 use curl::easy::Easy;
 use mio::net::{TcpListener, TcpStream};
@@ -16,7 +17,6 @@ use mio::{Events, Interest, Poll, Token};
 use proxmox_io::ByteBuffer;
 use proxmox_sys::{
     error::io_err_other,
-    io_bail, io_format_err,
     linux::pty::{make_controlling_terminal, PTY},
 };
 
@@ -108,11 +108,11 @@ fn read_ticket_line(
             match buf.read_from(stream) {
                 Ok(n) => {
                     if n == 0 {
-                        io_bail!("connection closed before authentication");
+                        bail!("connection closed before authentication");
                     }
                 }
                 Err(err) if err.kind() == ErrorKind::WouldBlock => {}
-                Err(err) => return Err(err),
+                Err(err) => return Err(err.into()),
             }
 
             if buf[..].contains(&b'\n') {
@@ -120,13 +120,13 @@ fn read_ticket_line(
             }
 
             if buf.is_full() {
-                io_bail!("authentication data is incomplete: {:?}", &buf[..]);
+                bail!("authentication data is incomplete: {:?}", &buf[..]);
             }
         }
 
         elapsed = now.elapsed();
         if elapsed > timeout {
-            io_bail!("timed out");
+            bail!("timed out");
         }
     }
 
@@ -140,7 +140,7 @@ fn read_ticket_line(
             let (username, ticket) = line.split_at(pos);
             Ok((username.into(), ticket[1..].into()))
         }
-        None => io_bail!("authentication data is invalid"),
+        None => bail!("authentication data is invalid"),
     }
 }
 
@@ -183,7 +183,7 @@ fn authenticate(
     let response_code = curl.response_code()?;
 
     if response_code != 200 {
-        io_bail!("invalid authentication, code {}", response_code);
+        bail!("invalid authentication, code {}", response_code);
     }
 
     Ok(())
@@ -222,7 +222,7 @@ fn listen_and_accept(
 
         elapsed = now.elapsed();
         if elapsed > timeout {
-            io_bail!("timed out");
+            bail!("timed out");
         }
     }
 }
@@ -302,17 +302,17 @@ fn do_main() -> Result<()> {
     let use_port_as_fd = matches.is_present("use-port-as-fd");
 
     if use_port_as_fd && port > u16::MAX as u64 {
-        return Err(io_format_err!("port too big"));
+        return Err(format_err!("port too big"));
     } else if port > i32::MAX as u64 {
-        return Err(io_format_err!("Invalid FD number"));
+        return Err(format_err!("Invalid FD number"));
     }
 
     let (mut tcp_handle, port) =
         listen_and_accept("localhost", port, use_port_as_fd, Duration::new(10, 0))
-            .map_err(|err| io_format_err!("failed waiting for client: {}", err))?;
+            .map_err(|err| format_err!("failed waiting for client: {}", err))?;
 
     let (username, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
-        .map_err(|err| io_format_err!("failed reading ticket: {}", err))?;
+        .map_err(|err| format_err!("failed reading ticket: {}", err))?;
     let port = if use_port_as_fd { Some(port) } else { None };
     authenticate(&username, &ticket, path, perm, authport, port)?;
     tcp_handle.write_all(b"OK").expect("error writing response");
@@ -383,7 +383,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(io_format_err!("error reading from tcp: {}", err));
+                        return Err(format_err!("error reading from tcp: {}", err));
                     }
                     break;
                 }
@@ -403,7 +403,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(io_format_err!("error reading from pty: {}", err));
+                        return Err(format_err!("error reading from pty: {}", err));
                     }
                     break;
                 }
@@ -423,7 +423,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(io_format_err!("error writing to tcp : {}", err));
+                        return Err(format_err!("error writing to tcp : {}", err));
                     }
                     break;
                 }
@@ -447,7 +447,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(io_format_err!("error writing to pty : {}", err));
+                        return Err(format_err!("error writing to pty : {}", err));
                     }
                     break;
                 }
