@@ -97,9 +97,58 @@ function updateState(newState, msg, code) {
 
 var terminalContainer = document.getElementById('terminal-container');
 document.getElementById('status_bar').addEventListener('click', hideMsg);
+document.getElementById('connect_btn').addEventListener('click', startGuest);
 const fitAddon = new FitAddon.FitAddon();
 
 createTerminal();
+
+function startConnection(url, params, term) {
+    API2Request({
+	method: 'POST',
+	params: params,
+	url: url + '/termproxy',
+	success: function(result) {
+	    var port = encodeURIComponent(result.data.port);
+	    ticket = result.data.ticket;
+	    socketURL = protocol + location.hostname + ((location.port) ? (':' + location.port) : '') + '/api2/json' + url + '/vncwebsocket?port=' + port + '&vncticket=' + encodeURIComponent(ticket);
+
+	    term.open(terminalContainer, true);
+	    socket = new WebSocket(socketURL, 'binary');
+	    socket.binaryType = 'arraybuffer';
+	    socket.onopen = runTerminal;
+	    socket.onclose = tryReconnect;
+	    socket.onerror = tryReconnect;
+	    updateState(states.connecting);
+	},
+	failure: function(msg) {
+	    updateState(states.disconnected,msg);
+	}
+    });
+}
+
+function startGuest() {
+    let api_type = type === 'kvm' ? 'qemu' : 'lxc';
+    API2Request({
+	method: 'POST',
+	url: `/nodes/${nodename}/${api_type}/${vmid}/status/start`,
+	success: function(result) {
+	    showMsg('Guest started successfully', 0);
+	    setTimeout(function() {
+		location.reload();
+	    }, 1000);
+	},
+	failure: function(msg) {
+	    if (msg.match(/already running/)) {
+		showMsg('Guest started successfully', 0);
+		setTimeout(function() {
+		    location.reload();
+		}, 1000);
+	    } else {
+		updateState(states.disconnected,msg);
+	    }
+	}
+    });
+}
 
 function createTerminal() {
     term = new Terminal(getTerminalSettings());
@@ -132,28 +181,24 @@ function createTerminal() {
 	    }
 	    break;
     }
-    API2Request({
-	method: 'POST',
-	params: params,
-	url: url + '/termproxy',
-	success: function(result) {
-	    var port = encodeURIComponent(result.data.port);
-	    ticket = result.data.ticket;
-	    socketURL = protocol + location.hostname + ((location.port) ? (':' + location.port) : '') + '/api2/json' + url + '/vncwebsocket?port=' + port + '&vncticket=' + encodeURIComponent(ticket);
-
-	    term.open(terminalContainer, true);
-	    socket = new WebSocket(socketURL, 'binary');
-	    socket.binaryType = 'arraybuffer';
-	    socket.onopen = runTerminal;
-	    socket.onclose = tryReconnect;
-	    socket.onerror = tryReconnect;
-	    updateState(states.connecting);
-	},
-	failure: function(msg) {
-	    updateState(states.disconnected,msg);
-	}
-    });
-
+    if (type === 'kvm' || type === 'lxc') {
+	API2Request({
+	    method: 'GET',
+	    url: `${url}/status/current`,
+	    success: function(result) {
+		if (result.data.status === 'running') {
+		    startConnection(url, params, term);
+		} else {
+		    document.getElementById('connect_dlg').classList.add('pve_open');
+		}
+	    },
+	    failure: function(msg) {
+		updateState(states.disconnected, msg);
+	    },
+	});
+    } else {
+	startConnection(url, params, term);
+    }
 }
 
 function runTerminal() {
