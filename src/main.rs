@@ -14,8 +14,8 @@ use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
 
 use proxmox_io::ByteBuffer;
+use proxmox_lang::error::io_err_other;
 use proxmox_sys::{
-    error::io_err_other,
     linux::pty::{make_controlling_terminal, PTY},
 };
 
@@ -242,7 +242,7 @@ fn run_pty(cmd: &OsStr, params: clap::OsValues) -> Result<PTY> {
 
     command.spawn()?;
 
-    pty.set_size(80, 20).map_err(|x| x.as_errno().unwrap())?;
+    pty.set_size(80, 20)?;
     Ok(pty)
 }
 
