@@ -12,7 +12,7 @@ exclude = [ "build", "debian" ]
 
 [dependencies]
 anyhow = "1"
-mio = { version = "0.7", features = [ "net", "os-ext" ] }
+mio = { version = "0.8", features = [ "net", "os-ext" ] }
 ureq = { version = "2.4", default-features = false, features = [ "gzip" ] }
 clap = "2.33"
 proxmox-io = "1"
