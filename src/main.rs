@@ -15,9 +15,7 @@ use mio::{Events, Interest, Poll, Token};
 
 use proxmox_io::ByteBuffer;
 use proxmox_lang::error::io_err_other;
-use proxmox_sys::{
-    linux::pty::{make_controlling_terminal, PTY},
-};
+use proxmox_sys::linux::pty::{make_controlling_terminal, PTY};
 
 const MSG_TYPE_DATA: u8 = 0;
 const MSG_TYPE_RESIZE: u8 = 1;
@@ -266,7 +264,12 @@ fn do_main() -> Result<()> {
                 .required(true),
         )
         .arg(Arg::with_name("perm").takes_value(true).long("perm"))
-        .arg(Arg::with_name("cmd").multiple(true).required(true))
+        .arg(
+            Arg::with_name("cmd")
+                .allow_invalid_utf8(true)
+                .multiple(true)
+                .required(true),
+        )
         .get_matches();
 
     let port: u64 = matches
