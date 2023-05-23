@@ -1,2 +1,2 @@
-rust-termproxy source: source-is-missing src/www/xterm.js line length is *
-rust-termproxy source: source-is-missing src/www/xterm-addon-fit.js line length is *
+rust-termproxy source: source-is-missing [src/www/xterm-addon-fit.js]
+rust-termproxy source: source-is-missing [src/www/xterm.js]
