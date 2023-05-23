@@ -4,6 +4,9 @@ include /usr/share/dpkg/architecture.mk
 PACKAGE=pve-xtermjs
 CRATENAME=termproxy
 
+BUILDDIR ?= $(DEB_SOURCE)-$(DEB_VERSION_UPSTREAM)
+ORIG_SRC_TAR=$(DEB_SOURCE)_$(DEB_VERSION_UPSTREAM).orig.tar.gz
+
 export VERSION=$(DEB_VERSION_UPSTREAM_REVISION)
 
 XTERMJSVER=4.16.0
@@ -16,6 +19,7 @@ DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_HOST_ARCH).deb
 DBG_DEB=$(PACKAGE)-dbgsym_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_HOST_ARCH).deb
 DSC=rust-$(CRATENAME)_$(DEB_VERSION_UPSTREAM_REVISION).dsc
 
+CARGO ?= cargo
 ifeq ($(BUILD_MODE), release)
 CARGO_BUILD_ARGS += --release
 COMPILEDIR := target/release
@@ -23,37 +27,50 @@ else
 COMPILEDIR := target/debug
 endif
 
-all: cargo-build $(SRCIDR)
+PREFIX = /usr
+BINDIR = $(PREFIX)/bin
+TERMPROXY_BIN := $(addprefix $(COMPILEDIR)/,termproxy)
 
-.PHONY: $(SUBDIRS)
-$(SUBDIRS):
-	make -C $@
+all:
+
+install: $(TERMPROXY_BIN)
+	install -dm755 $(DESTDIR)$(BINDIR)
+	install -m755 $(TERMPROXY_BIN) $(DESTDIR)$(BINDIR)/
+
+$(TERMPROXY_BIN): .do-cargo-build
+.do-cargo-build:
+	$(CARGO) build $(CARGO_BUILD_ARGS)
+	touch .do-cargo-build
+
 
 .PHONY: cargo-build
-cargo-build:
-	cargo build $(CARGO_BUILD_ARGS)
+cargo-build: .do-cargo-build
 
-.PHONY: build
-build:
-	rm -rf build
-	rm -f debian/control
-	debcargo package \
+update-dcontrol:
+	rm -rf $(BUILDDIR)
+	$(MAKE) $(BUILDDIR)
+	cd $(BUILDDIR); debcargo package \
 	  --config debian/debcargo.toml \
 	  --changelog-ready \
 	  --no-overlay-write-back \
 	  --directory build \
 	  $(CRATENAME) \
-	  $(shell dpkg-parsechangelog -l debian/changelog -SVersion | sed -e 's/-.*//')
-	rm build/Cargo.lock
-	find build/debian -name "*.hint" -delete
-	cp build/debian/control debian/control
+	  $(DEB_VERSION_UPSTREAM)
+	cd $(BUILDDIR)/build; wrap-and-sort -tkn
+	cp --remove-destination $(BUILDDIR)/build/debian/control debian/control
+
+$(BUILDDIR):
+	rm -rf $@ $@.tmp
+	mkdir $@.tmp
+	cp -a debian/ src/ Makefile Cargo.toml $@.tmp
 	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout $$(git rev-parse HEAD)" \
 	    > $@.tmp/debian/SOURCE
 
 .PHONY: deb
 deb: $(DEB)
-$(DEB) $(DBG_DEB): build
-	cd build; dpkg-buildpackage -b -uc -us
+$(DBG_DEB): $(DEB)
+$(DEB): $(BUILDDIR)
+	cd $(BUILDDIR); dpkg-buildpackage -b -uc -us
 	lintian $(DEB)
 	@echo $(DEB)
 
@@ -85,7 +102,8 @@ distclean: clean
 
 .PHONY: clean
 clean:
-	rm -rf *~ debian/*~ $(PACKAGE)-*/ build/ *.deb *.changes *.dsc *.tar.?z *.buildinfo
+	$(CARGO) clean
+	rm -rf $(DEB_SOURCE)-[0-9]*/ build/ *.deb *.changes *.dsc *.tar.* *.buildinfo *.build .do-cargo-build
 
 .PHONY: dinstall
 dinstall: deb

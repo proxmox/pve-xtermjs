@@ -3,11 +3,25 @@
 include /usr/share/dpkg/pkg-info.mk
 include /usr/share/rustc/architecture.mk
 
+export BUILD_MODE=release
+
+export CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+export DEB_HOST_RUST_TYPE DEB_HOST_GNU_TYPE
+export CARGO_HOME = $(CURDIR)/debian/cargo_home
+
+export DEB_CARGO_CRATE=termproxy_$(DEB_VERSION_UPSTREAM)
+export DEB_CARGO_PACKAGE=pve-xtermjs
+
 %:
-	dh $@ --buildsystem cargo
+	dh $@
 
 override_dh_auto_build:
 	dh_auto_build
 	sed -e 's/@VERSION@/$(DEB_VERSION)/' src/www/index.html.tpl.in > src/www/index.html.tpl
 	sed -e 's/@VERSION@/$(DEB_VERSION)/' src/www/index.html.hbs.in > src/www/index.html.hbs
 	rm src/www/index.html.tpl.in src/www/index.html.hbs.in
+
+override_dh_auto_configure:
+	rm -f Cargo.lock
+	/usr/share/cargo/bin/cargo prepare-debian $(CURDIR)/debian/cargo_registry --link-from-system
+	dh_auto_configure
