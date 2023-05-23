@@ -63,8 +63,9 @@ $(DSC): build
 	cd build; dpkg-buildpackage -S -us -uc -d -nc
 	lintian $(DSC)
 
-X_EXCLUSIONS=--exclude=addons/attach --exclude=addons/fullscreen --exclude=addons/search \
-  --exclude=addons/terminado --exclude=addons/webLinks --exclude=addons/zmodem
+EXCLUDED_ADDONS=attach fullscreen search terminado webLinks zmodem
+X_EXCLUSIONS=$(foreach ADDON,$(EXCLUDED_ADDONS),--exclude=addons/$(ADDON))
+
 .PHONY: download
 download:
 	wget https://registry.npmjs.org/xterm/-/$(XTERMJSTGZ) -O $(XTERMJSTGZ).tmp
