@@ -53,14 +53,14 @@ build:
 .PHONY: deb
 deb: $(DEB)
 $(DEB) $(DBG_DEB): build
-	cd build; dpkg-buildpackage -b -uc -us --no-pre-clean
+	cd build; dpkg-buildpackage -b -uc -us
 	lintian $(DEB)
 	@echo $(DEB)
 
 .PHONY: dsc
 dsc: $(DSC)
 $(DSC): build
-	cd build; dpkg-buildpackage -S -us -uc -d -nc
+	cd build; dpkg-buildpackage -S -us -uc -d
 	lintian $(DSC)
 
 EXCLUDED_ADDONS=attach fullscreen search terminado webLinks zmodem
