@@ -1,3 +1,7 @@
-*.deb
-*.buildinfo
-*.changes
+/*.build
+/*.buildinfo
+/*.changes
+/*.deb
+/*.dsc
+/*.tar*
+/rust-termproxy-*/
