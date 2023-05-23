@@ -12,11 +12,8 @@ XTERMJSTGZ=xterm-$(XTERMJSVER).tgz
 FITADDONVER=0.5.0
 FITADDONTGZ=xterm-addon-fit-$(FITADDONVER).tgz
 
-SRCDIR=src
-GITVERSION:=$(shell git rev-parse HEAD)
-
-DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_BUILD_ARCH).deb
-DBG_DEB=$(PACKAGE)-dbgsym_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_BUILD_ARCH).deb
+DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_HOST_ARCH).deb
+DBG_DEB=$(PACKAGE)-dbgsym_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_HOST_ARCH).deb
 DSC=rust-$(CRATENAME)_$(DEB_VERSION_UPSTREAM_REVISION).dsc
 
 ifeq ($(BUILD_MODE), release)
@@ -50,7 +47,8 @@ build:
 	rm build/Cargo.lock
 	find build/debian -name "*.hint" -delete
 	cp build/debian/control debian/control
-	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout $(GITVERSION)" > build/debian/SOURCE
+	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout $$(git rev-parse HEAD)" \
+	    > $@.tmp/debian/SOURCE
 
 .PHONY: deb
 deb: $(DEB)
@@ -73,8 +71,8 @@ download:
 	wget https://registry.npmjs.org/xterm-addon-fit/-/$(FITADDONTGZ) -O $(FITADDONTGZ).tmp
 	mv $(XTERMJSTGZ).tmp $(XTERMJSTGZ)
 	mv $(FITADDONTGZ).tmp $(FITADDONTGZ)
-	tar -C $(SRCDIR)/www -xf $(XTERMJSTGZ) package/lib package/css --strip-components=2 $(X_EXCLUSIONS)
-	tar -C $(SRCDIR)/www -xf $(FITADDONTGZ) package/lib --strip-components=2 $(X_EXCLUSIONS)
+	tar -C src/www -xf $(XTERMJSTGZ) package/lib package/css --strip-components=2 $(X_EXCLUSIONS)
+	tar -C src/www -xf $(FITADDONTGZ) package/lib --strip-components=2 $(X_EXCLUSIONS)
 	rm $(XTERMJSTGZ) $(FITADDONTGZ)
 
 .PHONY: upload
