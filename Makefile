@@ -65,6 +65,11 @@ $(BUILDDIR):
 	cp -a debian/ src/ Makefile Cargo.toml $@.tmp
 	echo "git clone git://git.proxmox.com/git/pve-xtermjs.git\\ngit checkout $$(git rev-parse HEAD)" \
 	    > $@.tmp/debian/SOURCE
+	mv $@.tmp $@
+
+
+$(ORIG_SRC_TAR): $(BUILDDIR)
+	tar czf $(ORIG_SRC_TAR) --exclude="$(BUILDDIR)/debian" $(BUILDDIR)
 
 .PHONY: deb
 deb: $(DEB)
@@ -75,10 +80,16 @@ $(DEB): $(BUILDDIR)
 	@echo $(DEB)
 
 .PHONY: dsc
-dsc: $(DSC)
-$(DSC): build
-	cd build; dpkg-buildpackage -S -us -uc -d
+dsc:
+	rm -rf $(DSC) $(BUILDDIR)
+	$(MAKE) $(DSC)
 	lintian $(DSC)
+
+$(DSC): $(BUILDDIR) $(ORIG_SRC_TAR)
+	cd $(BUILDDIR); dpkg-buildpackage -S -us -uc -d
+
+sbuild: $(DSC)
+	sbuild $(DSC)
 
 EXCLUDED_ADDONS=attach fullscreen search terminado webLinks zmodem
 X_EXCLUSIONS=$(foreach ADDON,$(EXCLUDED_ADDONS),--exclude=addons/$(ADDON))
