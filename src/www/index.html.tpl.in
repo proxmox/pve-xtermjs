@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="/xtermjs/style.css?version=@VERSION@" />
 	<script src="/xtermjs/xterm.js?version=@VERSION@" ></script>
 	<script src="/xtermjs/xterm-addon-fit.js?version=@VERSION@" ></script>
+	<script src="/xtermjs/xterm-addon-webgl.js?version=@VERSION@" ></script>
 	<script src="/xtermjs/util.js?version=@VERSION@" ></script>
     </head>
     <body>

@@ -99,6 +99,7 @@ var terminalContainer = document.getElementById('terminal-container');
 document.getElementById('status_bar').addEventListener('click', hideMsg);
 document.getElementById('connect_btn').addEventListener('click', startGuest);
 const fitAddon = new FitAddon.FitAddon();
+const webglAddon = new WebglAddon.WebglAddon();
 
 createTerminal();
 
@@ -112,7 +113,6 @@ function startConnection(url, params, term) {
 	    ticket = result.data.ticket;
 	    socketURL = protocol + location.hostname + ((location.port) ? (':' + location.port) : '') + '/api2/json' + url + '/vncwebsocket?port=' + port + '&vncticket=' + encodeURIComponent(ticket);
 
-	    term.open(terminalContainer, true);
 	    socket = new WebSocket(socketURL, 'binary');
 	    socket.binaryType = 'arraybuffer';
 	    socket.onopen = runTerminal;
@@ -152,7 +152,13 @@ function startGuest() {
 
 function createTerminal() {
     term = new Terminal(getTerminalSettings());
+    term.open(terminalContainer);
     term.loadAddon(fitAddon);
+    try {
+	term.loadAddon(webglAddon);
+    } catch (_e) {
+	console.warn("webgl-addon loading failed, falling back to regular dom renderer");
+    }
 
     term.onResize(function (size) {
 	if (state === states.connected) {

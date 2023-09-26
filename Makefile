@@ -15,6 +15,9 @@ XTERMJSTGZ=xterm-$(XTERMJSVER).tgz
 FITADDONVER=0.8.0
 FITADDONTGZ=xterm-addon-fit-$(FITADDONVER).tgz
 
+WEBGLADDONVER=0.16.0
+WEBGLADDONTGZ=xterm-addon-webgl-$(WEBGLADDONVER).tgz
+
 DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_HOST_ARCH).deb
 DBG_DEB=$(PACKAGE)-dbgsym_$(DEB_VERSION_UPSTREAM_REVISION)_$(DEB_HOST_ARCH).deb
 DSC=rust-$(CRATENAME)_$(DEB_VERSION_UPSTREAM_REVISION).dsc
@@ -98,11 +101,14 @@ X_EXCLUSIONS=$(foreach ADDON,$(EXCLUDED_ADDONS),--exclude=addons/$(ADDON))
 download:
 	wget https://registry.npmjs.org/xterm/-/$(XTERMJSTGZ) -O $(XTERMJSTGZ).tmp
 	wget https://registry.npmjs.org/xterm-addon-fit/-/$(FITADDONTGZ) -O $(FITADDONTGZ).tmp
+	wget https://registry.npmjs.org/xterm-addon-webgl/-/$(WEBGLADDONTGZ) -O $(WEBGLADDONTGZ).tmp
 	mv $(XTERMJSTGZ).tmp $(XTERMJSTGZ)
 	mv $(FITADDONTGZ).tmp $(FITADDONTGZ)
+	mv $(WEBGLADDONTGZ).tmp $(WEBGLADDONTGZ)
 	tar -C src/www -xf $(XTERMJSTGZ) package/lib package/css --strip-components=2 $(X_EXCLUSIONS)
 	tar -C src/www -xf $(FITADDONTGZ) package/lib --strip-components=2 $(X_EXCLUSIONS)
-	rm $(XTERMJSTGZ) $(FITADDONTGZ)
+	tar -C src/www -xf $(WEBGLADDONTGZ) package/lib --strip-components=2 $(X_EXCLUSIONS)
+	rm $(XTERMJSTGZ) $(FITADDONTGZ) $(WEBGLADDONTGZ)
 
 .PHONY: upload
 upload: UPLOAD_DIST ?= $(DEB_DISTRIBUTION)
