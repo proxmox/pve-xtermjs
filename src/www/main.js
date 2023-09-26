@@ -371,7 +371,7 @@ function stopTerminal(event) {
 }
 
 function errorTerminal(event) {
-    even = event || {};
+    event = event || {};
     clearEvents();
     clearInterval(ping);
     socket.close();
