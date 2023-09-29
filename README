@@ -1,15 +1,19 @@
 xterm.js webclient and helper utility
 =====================================
 
-This repository contains the client and helper utility to use
-xterm.js (https://xtermjs.org) for Proxmox VE.
+This repository contains the client and helper utility to use xterm.js [0] in
+the web UI of Proxmox projects like Proxmox VE, Proxmox Mail Gateway or Proxmox
+Backup Server.
 
-To be able to relay between the gui and a shell program/console,
-we need a tool (called termproxy) to open a port (where our websocketproxy
-connects to) and to open a pty and execute a program
+[0]: https://xtermjs.org
 
-From Client to Server it implements a simple packet-based protocol:
-(everything is a string)
+To be able to relay between the frontend and a shell program/console running in
+the backend, we provide a tool called termproxy to open a port (where our
+websocketproxy connects to) and to open a PTY and execute a program.
+
+For communication originating from the client towards the server, it implements
+a simple packet-based protocol where everything is a string. The protocol
+consists of the following messages:
 
 * Normal Message
     0:LENGTH:MSG
@@ -17,16 +21,15 @@ From Client to Server it implements a simple packet-based protocol:
 
 * Resize Message
     1:COLS:ROWS:
-    where COLS is the number of columns the client wants to resize to,
-    and ROWS the number of rows, respectively
+	where COLS is the number of columns the client wants to resize to, and ROWS
+	the number of rows, respectively
 
 * Ping Message
     2
     used to keep the connection between client and server alive
     (we have a timeout of 5 minutes)
 
-every other input from the client will be ignored
+Every other input from the client will be ignored.
 
-From server to client, the data will simply sent, without any
-format
-
+Communication from server to the client uses no protocol, the raw data coming
+from the terminal/program will be forwarded 1:1, without any wrapping format.
