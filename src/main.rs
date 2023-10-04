@@ -1,6 +1,6 @@
 use std::cmp::min;
 use std::collections::HashMap;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::io::{ErrorKind, Write};
 use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::os::unix::process::CommandExt;
@@ -8,7 +8,7 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 
 use anyhow::{bail, format_err, Result};
-use clap::{App, AppSettings, Arg};
+use clap::Arg;
 use mio::net::{TcpListener, TcpStream};
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
@@ -212,7 +212,10 @@ fn listen_and_accept(
     }
 }
 
-fn run_pty(cmd: &OsStr, params: clap::OsValues) -> Result<PTY> {
+fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<PTY> {
+    let cmd_exe = full_cmd.next().unwrap();
+    let params = full_cmd; // rest
+
     let (mut pty, secondary_name) = PTY::new().map_err(io_err_other)?;
 
     let mut filtered_env: HashMap<OsString, OsString> = std::env::vars_os()
@@ -227,7 +230,7 @@ fn run_pty(cmd: &OsStr, params: clap::OsValues) -> Result<PTY> {
         .collect();
     filtered_env.insert("TERM".into(), "xterm-256color".into());
 
-    let mut command = Command::new(cmd);
+    let mut command = Command::new(cmd_exe);
 
     command.args(params).env_clear().envs(&filtered_env);
 
@@ -248,48 +251,32 @@ const TCP: Token = Token(0);
 const PTY: Token = Token(1);
 
 fn do_main() -> Result<()> {
-    let matches = App::new("termproxy")
-        .setting(AppSettings::TrailingVarArg)
-        .arg(Arg::with_name("port").takes_value(true).required(true))
+    let matches = clap::builder::Command::new("termproxy")
+        .trailing_var_arg(true)
         .arg(
-            Arg::with_name("authport")
-                .takes_value(true)
-                .long("authport"),
+            Arg::new("port")
+                .num_args(1)
+                .required(true)
+                .value_parser(clap::value_parser!(u64)),
         )
-        .arg(Arg::with_name("use-port-as-fd").long("port-as-fd"))
+        .arg(Arg::new("authport").num_args(1).long("authport"))
+        .arg(Arg::new("use-port-as-fd").long("port-as-fd"))
+        .arg(Arg::new("path").num_args(1).long("path").required(true))
+        .arg(Arg::new("perm").num_args(1).long("perm"))
         .arg(
-            Arg::with_name("path")
-                .takes_value(true)
-                .long("path")
-                .required(true),
-        )
-        .arg(Arg::with_name("perm").takes_value(true).long("perm"))
-        .arg(
-            Arg::with_name("cmd")
-                .allow_invalid_utf8(true)
-                .multiple(true)
+            Arg::new("cmd")
+                .value_parser(clap::value_parser!(OsString))
+                .num_args(1..)
                 .required(true),
         )
         .get_matches();
 
-    let port: u64 = matches
-        .value_of("port")
-        .unwrap()
-        .parse()
-        .map_err(io_err_other)?;
-    let path = matches.value_of("path").unwrap();
-    let perm: Option<&str> = matches.value_of("perm");
-    let mut cmdparams = matches.values_of_os("cmd").unwrap();
-    let cmd = cmdparams.next().unwrap();
-    let authport: u16 = matches
-        .value_of("authport")
-        .unwrap_or("85")
-        .parse()
-        .map_err(io_err_other)?;
-    let mut pty_buf = ByteBuffer::new();
-    let mut tcp_buf = ByteBuffer::new();
-
-    let use_port_as_fd = matches.is_present("use-port-as-fd");
+    let port: u64 = *matches.get_one("port").unwrap();
+    let path = matches.get_one::<String>("path").unwrap();
+    let perm = matches.get_one::<String>("perm").map(|x| x.as_str());
+    let full_cmd: clap::parser::ValuesRef<OsString> = matches.get_many("cmd").unwrap();
+    let authport: u16 = *matches.get_one("authport").unwrap_or(&85);
+    let use_port_as_fd = matches.contains_id("use-port-as-fd");
 
     if use_port_as_fd && port > u16::MAX as u64 {
         return Err(format_err!("port too big"));
@@ -301,16 +288,19 @@ fn do_main() -> Result<()> {
         listen_and_accept("localhost", port, use_port_as_fd, Duration::new(10, 0))
             .map_err(|err| format_err!("failed waiting for client: {}", err))?;
 
+    let mut pty_buf = ByteBuffer::new();
+    let mut tcp_buf = ByteBuffer::new();
+
     let (username, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
         .map_err(|err| format_err!("failed reading ticket: {}", err))?;
     let port = if use_port_as_fd { Some(port) } else { None };
-    authenticate(&username, &ticket, path, perm, authport, port)?;
+    authenticate(&username, &ticket, &path, perm.as_deref(), authport, port)?;
     tcp_handle.write_all(b"OK").expect("error writing response");
 
     let mut poll = Poll::new()?;
     let mut events = Events::with_capacity(128);
 
-    let mut pty = run_pty(cmd, cmdparams)?;
+    let mut pty = run_pty(full_cmd)?;
 
     poll.registry().register(
         &mut tcp_handle,
