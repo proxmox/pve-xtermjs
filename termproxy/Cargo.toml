@@ -1,12 +1,12 @@
 [package]
-name = "termproxy"
+name = "proxmox-termproxy"
 description = "Execute a terminal command and proxy I/O via network"
-version = "4.16.0"
+version = "1.0.0"
 authors = [
     "Proxmox Support Team <support@proxmox.com>",
     "for xterm.js parts: The xterm.js authors <https://github.com/xtermjs/xterm.js>",
 ]
-edition = "2018"
+edition = "2021"
 license = "AGPL-3"
 
 exclude = [ "build", "debian" ]

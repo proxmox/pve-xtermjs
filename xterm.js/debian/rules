@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	dh_auto_build
+	sed -e 's/@VERSION@/$(DEB_VERSION)/' src/index.html.tpl.in > src/index.html.tpl
+	sed -e 's/@VERSION@/$(DEB_VERSION)/' src/index.html.hbs.in > src/index.html.hbs
+	rm src/index.html.tpl.in src/index.html.hbs.in

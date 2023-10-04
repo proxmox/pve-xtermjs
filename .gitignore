@@ -1,7 +1,9 @@
-/*.build
-/*.buildinfo
-/*.changes
-/*.deb
-/*.dsc
-/*.tar*
-/rust-termproxy-*/
+*.build
+*.buildinfo
+*.changes
+*.deb
+*.dsc
+*.tar*
+Cargo.lock
+/termproxy/proxmox-termproxy-[0-9]*/
+/xterm.js/pve-xtermjs-[0-9]*/

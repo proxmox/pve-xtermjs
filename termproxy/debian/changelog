@@ -1,0 +1,149 @@
+proxmox-termproxy (1.0.0) bookworm; urgency=medium
+
+  * split out the system console wrapper termproxy into own package
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 13 Oct 2023 11:07:08 +0200
+
+proxmox-term-proxy (4.16.0-3) bookworm; urgency=medium
+
+  * re-build for Debian 12 Bookworm based releases
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 23 May 2023 13:48:44 +0200
+
+rust-termproxy (4.16.0-2) bullseye; urgency=medium
+
+  * switch from curl to ureq
+
+  * detect not running guests and add start button
+
+  * various smaller build system updates and improvements
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 22 May 2023 15:35:35 +0200
+
+rust-termproxy (4.16.0-1) bullseye; urgency=medium
+
+  * upgrade xterm.js from 4.12.0 to 4.16.0
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 25 Jan 2022 15:32:15 +0100
+
+rust-termproxy (4.12.0-1) bullseye; urgency=medium
+
+  * upgrade xterm.js to new upstream release 4.12.0
+
+  * re-build for Debian 11 Bullseye based releases
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 14 May 2021 08:26:36 +0200
+
+rust-termproxy (4.7.0-3) pve pmg; urgency=medium
+
+  * fix console window title for rust template
+
+  * fix #2980: do not prompt for leaving on reconnect/disconnect
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 24 Nov 2020 14:53:10 +0100
+
+rust-termproxy (4.7.0-2) pve pmg; urgency=medium
+
+  * fix corner case handling of pre-defined command options
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 28 Aug 2020 13:51:42 +0200
+
+rust-termproxy (4.7.0-1) pve pmg; urgency=medium
+
+  * upgrade xterm.js to new upstream release 4.3.0
+
+  * rewrite system console wrapper in rust
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 23 Jul 2020 12:20:16 +0200
+
+pve-xtermjs (4.3.0-1) pve pmg; urgency=medium
+
+  * upgrade xterm.js to new upstream release 4.3.0
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 22 Jan 2020 12:17:59 +0100
+
+pve-xtermjs (3.13.2-1) pve pmg; urgency=medium
+
+  * update sources to 3.13.2
+
+  * build for Debian Buster
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 22 May 2019 20:04:12 +0200
+
+pve-xtermjs (3.12.0-1) unstable; urgency=medium
+
+  * allow xtermjs on ipv6 only host
+
+  * update to upstream 3.12.0 release
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 26 Mar 2019 07:44:39 +0100
+
+pve-xtermjs (3.10.1-2) unstable; urgency=medium
+
+  * support new 'cmd' parameter
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 28 Feb 2019 11:13:08 +0100
+
+pve-xtermjs (3.10.1-1) unstable; urgency=medium
+
+  * update to xterm.js 3.10.1
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 17 Jan 2019 16:38:51 +0100
+
+pve-xtermjs (1.0-5) unstable; urgency=medium
+
+  * change localhost to 127.0.0.1
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 08 May 2018 11:20:25 +0200
+
+pve-xtermjs (1.0-4) unstable; urgency=medium
+
+  * reload on container reboot
+
+  * do not try to reconnect the host shell
+
+  * focus terminal when starting
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 07 May 2018 15:16:07 +0200
+
+pve-xtermjs (1.0-3) unstable; urgency=medium
+
+  * update to xterm.js 3.2.0
+
+  * implement reconnect logic
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 11 Apr 2018 14:32:28 +0200
+
+pve-xtermjs (1.0-2) unstable; urgency=medium
+
+  * make perm an optional parameter
+
+  * remove dependcy to libpve-access-control
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 11 Dec 2017 14:39:10 +0100
+
+pve-xtermjs (1.0-1) unstable; urgency=medium
+
+  * bump to 1.0-1
+
+  * update dependencies
+
+  * check ticket via api instead of verify_vnc_ticket
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 07 Dec 2017 13:24:37 +0100
+
+pve-xtermjs (0.1-1) unstable; urgency=medium
+
+  * bump to 0.1-1
+
+  * update dependencies
+
+  * give pty object to process_queue on first call
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 04 Dec 2017 10:29:52 +0100
+
+pve-xtermjs (0.1-1~rc1) unstable; urgency=medium
+
+  * initial package
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 20 Nov 2017 08:25:32 +0100
