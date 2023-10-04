@@ -11,6 +11,9 @@ license = "AGPL-3"
 
 exclude = [ "build", "debian" ]
 
+[profile.release]
+lto = true
+
 [dependencies]
 anyhow = "1"
 mio = { version = "0.8", features = [ "net", "os-ext" ] }
