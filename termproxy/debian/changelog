@@ -2,6 +2,11 @@ proxmox-termproxy (1.0.0) bookworm; urgency=medium
 
   * split out the system console wrapper termproxy into own package
 
+  * install this internal binary into /usr/libexec/proxmox/ but leave a compat
+    symlink behind to not break use sites immediately.
+
+  * enable full Link Time Optimizations (LTO) on build
+
  -- Proxmox Support Team <support@proxmox.com>  Fri, 13 Oct 2023 11:07:08 +0200
 
 proxmox-term-proxy (4.16.0-3) bookworm; urgency=medium
