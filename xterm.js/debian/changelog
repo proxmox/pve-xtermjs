@@ -2,12 +2,13 @@ pve-xtermjs (5.3.0-1) bookworm; urgency=medium
 
   * update to upstream stable release 5.3.0
 
-  * ship WebGL addon
+  * ship the WebGL-renderer addon and use it as new default over depreacated
+    canvas renderer.
 
   * split out our native tooling from repackaged upstream for cleaner
     packaging and to reduce maintenance burden
 
- -- Proxmox Support Team <support@proxmox.com>  Tue, 23 May 2023 13:48:44 +0200
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 13 Oct 2023 16:18:20 +0200
 
 rust-termproxy (4.16.0-3) bookworm; urgency=medium
 
