@@ -11,8 +11,7 @@ Rules-Requires-Root: no
 
 Package: pve-xtermjs
 Architecture: all
-Depends: ${misc:Depends},
-Recommends: proxmox-termproxy
+Depends: ${misc:Depends}, proxmox-termproxy
 Description: HTML/TypeScript based fully-featured terminal for Proxmox projects
  Provides the xterm.js frontend for the terminal feature in Proxmox projects'
  web UI's, like for host administration or Proxmox VE containers shells.
