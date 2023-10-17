@@ -19,14 +19,16 @@ COMPILEDIR := target/debug
 endif
 
 PREFIX = /usr
-BINDIR = $(PREFIX)/bin
+LIBEXECDIR = $(PREFIX)/libexec
+PROXMOX_LIBEXECDIR = $(LIBEXECDIR)/proxmox
+
 TERMPROXY_BIN := $(addprefix $(COMPILEDIR)/,proxmox-termproxy)
 
 all:
 
 install: $(TERMPROXY_BIN)
-	install -dm755 $(DESTDIR)$(BINDIR)
-	install -m755 $(TERMPROXY_BIN) $(DESTDIR)$(BINDIR)/
+	install -dm755 $(DESTDIR)$(PROXMOX_LIBEXECDIR)
+	install -m755 $(TERMPROXY_BIN) $(DESTDIR)$(PROXMOX_LIBEXECDIR)/
 
 $(TERMPROXY_BIN): .do-cargo-build
 .do-cargo-build:

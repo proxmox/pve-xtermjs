@@ -1,1 +1,1 @@
-usr/bin/proxmox-termproxy usr/bin/termproxy
+usr/libexec/proxmox/proxmox-termproxy usr/bin/termproxy
