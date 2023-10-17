@@ -278,10 +278,10 @@ fn do_main() -> Result<()> {
     let authport: u16 = *matches.get_one("authport").unwrap_or(&85);
     let use_port_as_fd = matches.contains_id("use-port-as-fd");
 
-    if use_port_as_fd && port > u16::MAX as u64 {
-        return Err(format_err!("port too big"));
-    } else if port > i32::MAX as u64 {
-        return Err(format_err!("Invalid FD number"));
+    if use_port_as_fd && port > std::os::fd::RawFd::MAX as u64 {
+        return Err(format_err!("FD too big"));
+    } else if !use_port_as_fd && port > u16::MAX as u64 {
+        return Err(format_err!("invalid port number"));
     }
 
     let (mut tcp_handle, port) =
