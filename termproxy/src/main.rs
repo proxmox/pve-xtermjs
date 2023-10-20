@@ -2,13 +2,13 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io::{ErrorKind, Write};
+use std::os::fd::RawFd;
 use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::os::unix::process::CommandExt;
 use std::process::Command;
 use std::time::{Duration, Instant};
 
 use anyhow::{bail, format_err, Result};
-use clap::Arg;
 use mio::net::{TcpListener, TcpStream};
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
@@ -141,28 +141,27 @@ fn read_ticket_line(
     }
 }
 
-fn authenticate(
-    username: &[u8],
-    ticket: &[u8],
-    path: &str,
-    perm: Option<&str>,
-    authport: u16,
-    port: Option<u16>,
-) -> Result<()> {
+fn authenticate(username: &[u8], ticket: &[u8], options: &Options, listen_port: u16) -> Result<()> {
     let mut post_fields: Vec<(&str, &str)> = Vec::with_capacity(5);
     post_fields.push(("username", std::str::from_utf8(username)?));
     post_fields.push(("password", std::str::from_utf8(ticket)?));
-    post_fields.push(("path", path));
-    if let Some(perm) = perm {
+    post_fields.push(("path", &options.acl_path));
+    if let Some(perm) = options.acl_permission.as_ref() {
         post_fields.push(("privs", perm));
     }
+
+    // if the listen-port was passed indirectly via an FD, it's encoded also in the ticket so that
+    // the access system can enforce that the users actually can access that port.
     let port_str;
-    if let Some(port) = port {
-        port_str = port.to_string();
+    if options.listen_port.is_fd() {
+        port_str = listen_port.to_string();
         post_fields.push(("port", &port_str));
     }
 
-    let url = format!("http://localhost:{}/api2/json/access/ticket", authport);
+    let url = format!(
+        "http://localhost:{}/api2/json/access/ticket",
+        options.api_daemon_port
+    );
 
     match ureq::post(&url).send_form(&post_fields[..]) {
         Ok(res) if res.status() == 200 => Ok(()),
@@ -176,14 +175,12 @@ fn authenticate(
 
 fn listen_and_accept(
     hostname: &str,
-    port: u64,
-    port_as_fd: bool,
+    listen_port: &PortOrFd,
     timeout: Duration,
 ) -> Result<(TcpStream, u16)> {
-    let listener = if port_as_fd {
-        unsafe { std::net::TcpListener::from_raw_fd(port as i32) }
-    } else {
-        std::net::TcpListener::bind((hostname, port as u16))?
+    let listener = match listen_port {
+        PortOrFd::Fd(fd) => unsafe { std::net::TcpListener::from_raw_fd(*fd) },
+        PortOrFd::Port(port) => std::net::TcpListener::bind((hostname, *port as u16))?,
     };
     let port = listener.local_addr()?.port();
     let mut listener = TcpListener::from_std(listener);
@@ -201,7 +198,7 @@ fn listen_and_accept(
         poll.poll(&mut events, Some(timeout - elapsed))?;
         if !events.is_empty() {
             let (stream, client) = listener.accept()?;
-            println!("client connection: {:?}", client);
+            println!("client connection: {client:?}");
             return Ok((stream, port));
         }
 
@@ -250,42 +247,107 @@ fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<PTY> 
 const TCP: Token = Token(0);
 const PTY: Token = Token(1);
 
-fn do_main() -> Result<()> {
-    let matches = clap::builder::Command::new("termproxy")
-        .trailing_var_arg(true)
-        .arg(
-            Arg::new("port")
-                .num_args(1)
-                .required(true)
-                .value_parser(clap::value_parser!(u64)),
-        )
-        .arg(Arg::new("authport").num_args(1).long("authport"))
-        .arg(Arg::new("use-port-as-fd").long("port-as-fd"))
-        .arg(Arg::new("path").num_args(1).long("path").required(true))
-        .arg(Arg::new("perm").num_args(1).long("perm"))
-        .arg(
-            Arg::new("cmd")
-                .value_parser(clap::value_parser!(OsString))
-                .num_args(1..)
-                .required(true),
-        )
-        .get_matches();
+const CMD_HELP: &str = "\
+Usage: proxmox-termproxy [OPTIONS] --path <path> <listen-port> -- <terminal-cmd>...
 
-    let port: u64 = *matches.get_one("port").unwrap();
-    let path = matches.get_one::<String>("path").unwrap();
-    let perm = matches.get_one::<String>("perm").map(|x| x.as_str());
-    let full_cmd: clap::parser::ValuesRef<OsString> = matches.get_many("cmd").unwrap();
-    let authport: u16 = *matches.get_one("authport").unwrap_or(&85);
-    let use_port_as_fd = matches.contains_id("use-port-as-fd");
+Arguments:
+  <listen-port>           Port or file descriptor to listen for TCP connections
+  <terminal-cmd>...       The command to run connected via a proxied PTY
 
-    if use_port_as_fd && port > std::os::fd::RawFd::MAX as u64 {
-        return Err(format_err!("FD too big"));
-    } else if !use_port_as_fd && port > u16::MAX as u64 {
-        return Err(format_err!("invalid port number"));
+Options:
+      --authport <authport>       Port to relay auth-request, default 85
+      --port-as-fd                Use <listen-port> as file descriptor.
+      --path <path>               ACL object path to test <perm> on.
+      --perm <perm>               Permission to test.
+      -h, --help                  Print help
+";
+
+#[derive(Debug)]
+enum PortOrFd {
+    Port(u16),
+    Fd(RawFd),
+}
+
+impl PortOrFd {
+    fn from_cli(value: u64, use_as_fd: bool) -> Result<PortOrFd> {
+        if use_as_fd {
+            if value > RawFd::MAX as u64 {
+                bail!("FD value too big");
+            }
+            Ok(Self::Fd(value as RawFd))
+        } else {
+            if value > u16::MAX as u64 {
+                bail!("invalid port number");
+            }
+            Ok(Self::Port(value as u16))
+        }
     }
 
-    let (mut tcp_handle, port) =
-        listen_and_accept("localhost", port, use_port_as_fd, Duration::new(10, 0))
+    fn is_fd(&self) -> bool {
+        match self {
+            Self::Fd(_) => true,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Options {
+    /// The actual command to run proxied in a pseudo terminal.
+    terminal_command: Vec<OsString>,
+    /// The port or FD that termproxy will listen on for an incoming conection
+    listen_port: PortOrFd,
+    /// The port of the local privileged daemon that authentication is relayed to. Defaults to `85`
+    api_daemon_port: u16,
+    /// The ACL object path the 'acl_permission' is checked on
+    acl_path: String,
+    /// The ACL permission that the ticket, read from the stream, is required to have on 'acl_path'
+    acl_permission: Option<String>,
+}
+
+fn parse_args() -> Result<Options> {
+    let mut args: Vec<_> = std::env::args_os().collect();
+    args.remove(0); // remove the executable path.
+
+    // handle finding command after `--` first so that we only parse our options later
+    let terminal_command = if let Some(dash_dash) = args.iter().position(|arg| arg == "--") {
+        let later_args = args.drain(dash_dash + 1..).collect();
+        args.pop(); // .. then remove the `--`
+        Some(later_args)
+    } else {
+        None
+    };
+
+    // Now pass the remaining arguments through to `pico_args`.
+    let mut args = pico_args::Arguments::from_vec(args);
+
+    if args.contains(["-h", "--help"]) {
+        print!("{CMD_HELP}");
+        std::process::exit(0);
+    } else if terminal_command.is_none() {
+        bail!("missing terminal command or -- option-end marker, see '-h' for usage");
+    }
+
+    let options = Options {
+        terminal_command: terminal_command.unwrap(), // checked above
+        listen_port: PortOrFd::from_cli(args.free_from_str()?, args.contains("--port-as-fd"))?,
+        api_daemon_port: args.opt_value_from_str("--authport")?.unwrap_or(85),
+        acl_path: args.value_from_str("--path")?,
+        acl_permission: args.opt_value_from_str("--perm")?,
+    };
+
+    if !args.finish().is_empty() {
+        bail!("unexpected extra arguments, use '-h' for usage");
+    }
+
+    Ok(options)
+}
+
+fn do_main() -> Result<()> {
+    let options = parse_args()?;
+
+    let (mut tcp_handle, listen_port) =
+        listen_and_accept("localhost", &options.listen_port, Duration::new(10, 0))
             .map_err(|err| format_err!("failed waiting for client: {}", err))?;
 
     let mut pty_buf = ByteBuffer::new();
@@ -293,14 +355,15 @@ fn do_main() -> Result<()> {
 
     let (username, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
         .map_err(|err| format_err!("failed reading ticket: {}", err))?;
-    let port = if use_port_as_fd { Some(port) } else { None };
-    authenticate(&username, &ticket, &path, perm.as_deref(), authport, port)?;
+
+    authenticate(&username, &ticket, &options, listen_port)?;
+
     tcp_handle.write_all(b"OK").expect("error writing response");
 
     let mut poll = Poll::new()?;
     let mut events = Events::with_capacity(128);
 
-    let mut pty = run_pty(full_cmd)?;
+    let mut pty = run_pty(options.terminal_command.iter())?;
 
     poll.registry().register(
         &mut tcp_handle,
