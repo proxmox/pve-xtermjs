@@ -27,15 +27,15 @@ fn remove_number(buf: &mut ByteBuffer) -> Option<usize> {
             let data = buf.remove_data(*pos);
             buf.consume(1); // the ':'
             let len = match std::str::from_utf8(&data) {
-                Ok(lenstring) => match lenstring.parse() {
+                Ok(len_str) => match len_str.parse() {
                     Ok(len) => len,
                     Err(err) => {
-                        eprintln!("error parsing number: '{}'", err);
+                        eprintln!("error parsing number: '{err}'");
                         break;
                     }
                 },
                 Err(err) => {
-                    eprintln!("error parsing number: '{}'", err);
+                    eprintln!("error decoding number: '{err}'");
                     break;
                 }
             };
@@ -167,9 +167,9 @@ fn authenticate(username: &[u8], ticket: &[u8], options: &Options, listen_port: 
         Ok(res) if res.status() == 200 => Ok(()),
         Ok(res) | Err(ureq::Error::Status(_, res)) => {
             let code = res.status();
-            bail!("invalid authentication - {} {}", code, res.status_text())
+            bail!("invalid authentication - {code} {}", res.status_text())
         }
-        Err(err) => bail!("authentication request failed - {}", err),
+        Err(err) => bail!("authentication request failed - {err}"),
     }
 }
 
@@ -348,13 +348,13 @@ fn do_main() -> Result<()> {
 
     let (mut tcp_handle, listen_port) =
         listen_and_accept("localhost", &options.listen_port, Duration::new(10, 0))
-            .map_err(|err| format_err!("failed waiting for client: {}", err))?;
+            .map_err(|err| format_err!("failed waiting for client: {err}"))?;
 
     let mut pty_buf = ByteBuffer::new();
     let mut tcp_buf = ByteBuffer::new();
 
     let (username, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
-        .map_err(|err| format_err!("failed reading ticket: {}", err))?;
+        .map_err(|err| format_err!("failed reading ticket: {err}"))?;
 
     authenticate(&username, &ticket, &options, listen_port)?;
 
@@ -426,7 +426,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(format_err!("error reading from tcp: {}", err));
+                        return Err(format_err!("error reading from tcp: {err}"));
                     }
                     break;
                 }
@@ -446,7 +446,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(format_err!("error reading from pty: {}", err));
+                        return Err(format_err!("error reading from pty: {err}"));
                     }
                     break;
                 }
@@ -466,7 +466,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(format_err!("error writing to tcp : {}", err));
+                        return Err(format_err!("error writing to tcp : {err}"));
                     }
                     break;
                 }
@@ -490,7 +490,7 @@ fn do_main() -> Result<()> {
                 }
                 Err(err) => {
                     if !finished {
-                        return Err(format_err!("error writing to pty : {}", err));
+                        return Err(format_err!("error writing to pty : {err}"));
                     }
                     break;
                 }
@@ -507,7 +507,7 @@ fn main() {
     std::process::exit(match do_main() {
         Ok(_) => 0,
         Err(err) => {
-            eprintln!("{}", err);
+            eprintln!("{err}");
             1
         }
     });
