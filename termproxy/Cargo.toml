@@ -16,9 +16,10 @@ lto = true
 
 [dependencies]
 anyhow = "1"
+libc = "0.2.107"
 mio = { version = "0.8", features = [ "net", "os-ext" ] }
+nix = "0.26.1"
 pico-args = "0.4"
 proxmox-io = "1"
 proxmox-lang = "1.1"
-proxmox-sys = "0.5"
 ureq = { version = "2.4", default-features = false, features = [ "gzip" ] }

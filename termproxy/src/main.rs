@@ -14,10 +14,12 @@ use mio::{Events, Interest, Poll, Token};
 
 use proxmox_io::ByteBuffer;
 use proxmox_lang::error::io_err_other;
-use proxmox_sys::linux::pty::{make_controlling_terminal, PTY};
 
 mod cli;
 use crate::cli::{Options, PortOrFd};
+
+mod pty;
+use crate::pty::{make_controlling_terminal, PTY};
 
 const MSG_TYPE_DATA: u8 = 0;
 const MSG_TYPE_RESIZE: u8 = 1;
