@@ -1,2 +1,3 @@
-rust-termproxy source: source-is-missing [src/www/xterm-addon-fit.js]
-rust-termproxy source: source-is-missing [src/www/xterm.js]
+pve-xtermjs source: source-is-missing [src/xterm-addon-fit.js]
+pve-xtermjs source: source-is-missing [src/xterm-addon-webgl.js]
+pve-xtermjs source: source-is-missing [src/xterm.js]
