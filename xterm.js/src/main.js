@@ -154,9 +154,15 @@ function createTerminal() {
     term = new Terminal(getTerminalSettings());
     term.open(terminalContainer);
     term.loadAddon(fitAddon);
+    let loadedWebgl = false;
     try {
-	term.loadAddon(webglAddon);
-    } catch (_e) {
+	if (detectWebgl()) {
+	    term.loadAddon(webglAddon);
+	    loadedWebgl = true;
+	}
+    } catch (_e) { }
+
+    if (!loadedWebgl) {
 	console.warn("webgl-addon loading failed, falling back to regular dom renderer");
     }
 
@@ -383,4 +389,16 @@ function errorTerminal(event) {
     socket.close();
     term.dispose();
     updateState(states.disconnected, event.msg, event.code);
+}
+
+// try to detect hardware acceleration, can throw an exception if there is no webgl support
+//
+// for chrome we have to give the parameter, otherwise it'll use its software renderer
+// which is buggy: https://github.com/xtermjs/xterm.js/issues/4574
+//
+// firefox will fail on the getContext anyway if there is not hardware support
+function detectWebgl() {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2", { failIfMajorPerformanceCaveat: true });
+    return !!gl;
 }
