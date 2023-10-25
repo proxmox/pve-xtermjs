@@ -1,3 +1,9 @@
+pve-xtermjs (5.3.0-2) bookworm; urgency=medium
+
+  * fix detecting HW-support for WebGL in chromium based browser
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 25 Oct 2023 18:48:49 +0200
+
 pve-xtermjs (5.3.0-1) bookworm; urgency=medium
 
   * update to upstream stable release 5.3.0
