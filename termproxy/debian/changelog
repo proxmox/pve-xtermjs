@@ -1,3 +1,11 @@
+proxmox-termproxy (1.0.1) bookworm; urgency=medium
+
+  * termproxy: fix port/fd range check
+
+  * termproxy: switch from clap to pico-args for CLI argument handling
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 26 Oct 2023 17:29:37 +0200
+
 proxmox-termproxy (1.0.0) bookworm; urgency=medium
 
   * split out the system console wrapper termproxy into own package
