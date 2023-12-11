@@ -99,7 +99,6 @@ var terminalContainer = document.getElementById('terminal-container');
 document.getElementById('status_bar').addEventListener('click', hideMsg);
 document.getElementById('connect_btn').addEventListener('click', startGuest);
 const fitAddon = new FitAddon.FitAddon();
-const webglAddon = new WebglAddon.WebglAddon();
 
 createTerminal();
 
@@ -157,6 +156,7 @@ function createTerminal() {
     let loadedWebgl = false;
     try {
 	if (detectWebgl()) {
+	    const webglAddon = new WebglAddon.WebglAddon();
 	    term.loadAddon(webglAddon);
 	    loadedWebgl = true;
 	}
