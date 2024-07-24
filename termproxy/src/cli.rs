@@ -12,6 +12,7 @@ Arguments:
 
 Options:
       --authport <authport>       Port to relay auth-request, default 85
+      --authsocket <authsocket>   Unix socket to relay auth-request (conflicts with --authport)
       --port-as-fd                Use <listen-port> as file descriptor.
       --path <path>               ACL object path to test <perm> on.
       --perm <perm>               Permission to test.
@@ -41,13 +42,19 @@ impl PortOrFd {
 }
 
 #[derive(Debug)]
+pub enum DaemonAddress {
+    Port(u16),
+    UnixSocket(String),
+}
+
+#[derive(Debug)]
 pub struct Options {
     /// The actual command to run proxied in a pseudo terminal.
     pub terminal_command: Vec<OsString>,
     /// The port or FD that termproxy will listen on for an incoming conection
     pub listen_port: PortOrFd,
-    /// The port of the local privileged daemon that authentication is relayed to. Defaults to `85`
-    pub api_daemon_port: u16,
+    /// The port (or unix socket path) of the local privileged daemon that authentication is relayed to. Defaults to port `85`
+    pub api_daemon_address: DaemonAddress,
     /// The ACL object path the 'acl_permission' is checked on
     pub acl_path: String,
     /// The ACL permission that the ticket, read from the stream, is required to have on 'acl_path'
@@ -81,7 +88,18 @@ impl Options {
         let options = Self {
             terminal_command: terminal_command.unwrap(), // checked above
             listen_port: PortOrFd::from_cli(args.free_from_str()?, args.contains("--port-as-fd"))?,
-            api_daemon_port: args.opt_value_from_str("--authport")?.unwrap_or(85),
+            api_daemon_address: {
+                let authport: Option<u16> = args.opt_value_from_str("--authport")?;
+                let authsocket: Option<String> = args.opt_value_from_str("--authsocket")?;
+                match (authport, authsocket) {
+                    (Some(authport), None) => DaemonAddress::Port(authport),
+                    (None, Some(authsocket)) => DaemonAddress::UnixSocket(authsocket),
+                    (None, None) => DaemonAddress::Port(85),
+                    (Some(_), Some(_)) => {
+                        bail!("conflicting options: --authport and --authsocket are mutually exclusive.")
+                    }
+                }
+            },
             acl_path: args.value_from_str("--path")?,
             acl_permission: args.opt_value_from_str("--perm")?,
         };

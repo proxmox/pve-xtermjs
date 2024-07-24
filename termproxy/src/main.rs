@@ -1,11 +1,13 @@
 use std::cmp::min;
 use std::collections::HashMap;
 use std::ffi::OsString;
-use std::io::{ErrorKind, Write};
+use std::io::{ErrorKind, Read, Write};
 use std::os::unix::io::{AsRawFd, FromRawFd};
+use std::os::unix::net::UnixStream;
 use std::os::unix::process::CommandExt;
 use std::process::Command;
 use std::time::{Duration, Instant};
+//use std::io::prelude::*;
 
 use anyhow::{bail, format_err, Result};
 use mio::net::{TcpListener, TcpStream};
@@ -145,6 +147,43 @@ fn read_ticket_line(
     }
 }
 
+fn simple_auth_request<S: Read + Write>(mut stream: S, params: &[(&str, &str)]) -> Result<()> {
+    let mut form = form_urlencoded::Serializer::new(String::new());
+
+    for (name, value) in params {
+        form.append_pair(name, value);
+    }
+    let body = form.finish();
+    let raw_body = body.as_bytes();
+
+    let raw_request = format!(
+        concat!(
+            "POST /api2/json/access/ticket HTTP/1.1\r\n",
+            "Connection: close\r\n",
+            "User-Agent: termproxy/1.0\r\n",
+            "Content-Type: application/x-www-form-urlencoded;charset=UTF-8\r\n",
+            "Content-Length: {}\r\n",
+            "\r\n"
+        ),
+        raw_body.len()
+    );
+
+    stream.write_all(raw_request.as_bytes())?;
+    stream.write_all(raw_body)?;
+    stream.flush()?;
+
+    let mut res: Vec<u8> = Vec::new();
+    stream.read_to_end(&mut res)?;
+
+    let res = String::from_utf8(res)?;
+
+    if res.starts_with("HTTP/1.1 200 OK\r\n") {
+        Ok(())
+    } else {
+        bail!("authentication request failed");
+    }
+}
+
 fn authenticate(username: &[u8], ticket: &[u8], options: &Options, listen_port: u16) -> Result<()> {
     let mut post_fields: Vec<(&str, &str)> = Vec::with_capacity(5);
     post_fields.push(("username", std::str::from_utf8(username)?));
@@ -161,19 +200,17 @@ fn authenticate(username: &[u8], ticket: &[u8], options: &Options, listen_port: 
         port_str = listen_port.to_string();
         post_fields.push(("port", &port_str));
     }
-
-    let url = format!(
-        "http://localhost:{}/api2/json/access/ticket",
-        options.api_daemon_port
-    );
-
-    match ureq::post(&url).send_form(&post_fields[..]) {
-        Ok(res) if res.status() == 200 => Ok(()),
-        Ok(res) | Err(ureq::Error::Status(_, res)) => {
-            let code = res.status();
-            bail!("invalid authentication - {code} {}", res.status_text())
+    match options.api_daemon_address {
+        cli::DaemonAddress::Port(port) => {
+            let stream =
+                std::net::TcpStream::connect(std::net::SocketAddr::from(([127, 0, 0, 1], port)))?;
+            stream.set_nodelay(true)?;
+            simple_auth_request(stream, &post_fields)
         }
-        Err(err) => bail!("authentication request failed - {err}"),
+        cli::DaemonAddress::UnixSocket(ref path) => {
+            let stream = UnixStream::connect(path)?;
+            simple_auth_request(stream, &post_fields)
+        }
     }
 }
 
