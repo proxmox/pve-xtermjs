@@ -4,7 +4,7 @@ use std::os::fd::RawFd;
 use anyhow::{bail, Result};
 
 const CMD_HELP: &str = "\
-Usage: proxmox-termproxy [OPTIONS] --path <path> <listen-port> -- <terminal-cmd>...
+Usage: proxmox-termproxy <listen-port> [OPTIONS] --path <path> -- <terminal-cmd>...
 
 Arguments:
   <listen-port>           Port or file descriptor to listen for TCP connections
