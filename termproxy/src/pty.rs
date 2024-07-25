@@ -1,6 +1,6 @@
 //! Helper for creating a pseudo-terminal
 //!
-//! see [PTY](struct.PTY.html) for an example on how to use it
+//! see [Pty](struct.Pty.html) for an example on how to use it
 
 use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd, RawFd};
 
@@ -13,7 +13,7 @@ use nix::{ioctl_write_int_bad, ioctl_write_ptr_bad, Result};
 ioctl_write_int_bad!(set_controlling_tty, libc::TIOCSCTTY);
 ioctl_write_ptr_bad!(set_size, libc::TIOCSWINSZ, nix::pty::Winsize);
 
-/// Represents a PTY
+/// Represents a pty.
 ///
 /// Implements Read and Write (from std::io) so one can simply use it
 /// to read and write the terminal of a child process
@@ -34,7 +34,7 @@ ioctl_write_ptr_bad!(set_size, libc::TIOCSWINSZ, nix::pty::Winsize);
 /// }
 ///
 /// fn main() -> Result<()> {
-///     let (mut pty, secondary) = PTY::new()?;
+///     let (mut pty, secondary) = Pty::new()?;
 ///
 ///     let child = fork()?;
 ///     if child == 0 {
@@ -48,7 +48,7 @@ ioctl_write_ptr_bad!(set_size, libc::TIOCSWINSZ, nix::pty::Winsize);
 ///     Ok(())
 ///  }
 /// ```
-pub struct PTY {
+pub struct Pty {
     primary: PtyMaster,
 }
 
@@ -77,9 +77,9 @@ pub fn make_controlling_terminal(terminal: &str) -> Result<()> {
     Ok(())
 }
 
-impl PTY {
-    /// Creates a new PTY by opening /dev/ptmx and returns
-    /// a new PTY and the path to the secondary terminal on success.
+impl Pty {
+    /// Creates a new pty by opening /dev/ptmx and returns
+    /// a new pty and the path to the secondary terminal on success.
     pub fn new() -> Result<(Self, String)> {
         let primary =
             posix_openpt(OFlag::O_RDWR | OFlag::O_NOCTTY | OFlag::O_NONBLOCK | OFlag::O_CLOEXEC)?;
@@ -105,13 +105,13 @@ impl PTY {
     }
 }
 
-impl std::io::Read for PTY {
+impl std::io::Read for Pty {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         Ok(nix::unistd::read(self.primary.as_raw_fd(), buf)?)
     }
 }
 
-impl std::io::Write for PTY {
+impl std::io::Write for Pty {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         Ok(nix::unistd::write(self.primary.as_raw_fd(), buf)?)
     }
@@ -121,13 +121,13 @@ impl std::io::Write for PTY {
     }
 }
 
-impl AsRawFd for PTY {
+impl AsRawFd for Pty {
     fn as_raw_fd(&self) -> RawFd {
         self.primary.as_raw_fd()
     }
 }
 
-impl AsFd for PTY {
+impl AsFd for Pty {
     fn as_fd(&self) -> BorrowedFd<'_> {
         unsafe { BorrowedFd::borrow_raw(self.as_raw_fd()) }
     }

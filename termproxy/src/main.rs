@@ -21,7 +21,7 @@ mod cli;
 use crate::cli::{Options, PortOrFd};
 
 mod pty;
-use crate::pty::{make_controlling_terminal, PTY};
+use crate::pty::{make_controlling_terminal, Pty};
 
 const MSG_TYPE_DATA: u8 = 0;
 const MSG_TYPE_RESIZE: u8 = 1;
@@ -55,7 +55,7 @@ fn remove_number(buf: &mut ByteBuffer) -> Option<usize> {
     None
 }
 
-fn process_queue(buf: &mut ByteBuffer, pty: &mut PTY) -> Option<usize> {
+fn process_queue(buf: &mut ByteBuffer, pty: &mut Pty) -> Option<usize> {
     if buf.is_empty() {
         return None;
     }
@@ -221,7 +221,7 @@ fn listen_and_accept(
 ) -> Result<(TcpStream, u16)> {
     let listener = match listen_port {
         PortOrFd::Fd(fd) => unsafe { std::net::TcpListener::from_raw_fd(*fd) },
-        PortOrFd::Port(port) => std::net::TcpListener::bind((hostname, *port as u16))?,
+        PortOrFd::Port(port) => std::net::TcpListener::bind((hostname, *port))?,
     };
     let port = listener.local_addr()?.port();
     let mut listener = TcpListener::from_std(listener);
@@ -250,14 +250,14 @@ fn listen_and_accept(
     }
 }
 
-fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<PTY> {
+fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<Pty> {
     let cmd_exe = full_cmd.next().unwrap();
     let params = full_cmd; // rest
 
-    let (mut pty, secondary_name) = PTY::new().map_err(io_err_other)?;
+    let (mut pty, secondary_name) = Pty::new().map_err(io_err_other)?;
 
     let mut filtered_env: HashMap<OsString, OsString> = std::env::vars_os()
-        .filter(|&(ref k, _)| {
+        .filter(|(k, _)| {
             k == "PATH"
                 || k == "USER"
                 || k == "HOME"

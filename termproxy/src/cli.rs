@@ -8,7 +8,7 @@ Usage: proxmox-termproxy <listen-port> [OPTIONS] --path <path> -- <terminal-cmd>
 
 Arguments:
   <listen-port>           Port or file descriptor to listen for TCP connections
-  <terminal-cmd>...       The command to run connected via a proxied PTY
+  <terminal-cmd>...       The command to run connected via a proxied pty
 
 Options:
       --authport <authport>       Port to relay auth-request, default 85
@@ -113,9 +113,6 @@ impl Options {
     }
 
     pub fn use_listen_port_as_fd(&self) -> bool {
-        match self.listen_port {
-            PortOrFd::Fd(_) => true,
-            _ => false,
-        }
+        matches!(self.listen_port, PortOrFd::Fd(_))
     }
 }
