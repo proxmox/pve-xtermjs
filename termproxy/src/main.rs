@@ -342,7 +342,7 @@ fn do_main() -> Result<()> {
                 finished = true;
             }
             match event.token() {
-                TCP => {
+                self::TCP => {
                     if readable {
                         tcp_readable = true;
                     }
@@ -350,7 +350,7 @@ fn do_main() -> Result<()> {
                         tcp_writable = true;
                     }
                 }
-                PTY => {
+                self::PTY => {
                     if readable {
                         pty_readable = true;
                     }
