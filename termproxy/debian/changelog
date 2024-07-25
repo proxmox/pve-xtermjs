@@ -1,8 +1,23 @@
+proxmox-termproxy (1.1.0) bookworm; urgency=medium
+
+  * add new `--auth-socket` CLI option to allow using UNIX sockets for auth
+    requests.
+
+  * fix parsing free-form listen-port argument, allowing the listen-port-or-fd
+    to be the last argument, before the `--` separated terminal command that
+    is.
+
+  * rename the `--authport` option to `--auth-port` for consistency with other
+    options and better readability. Keep a fallback to the old variant for
+    backwards compatibility.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 25 Jul 2024 17:38:43 +0200
+
 proxmox-termproxy (1.0.1) bookworm; urgency=medium
 
-  * termproxy: fix port/fd range check
+  * fix port/fd range check
 
-  * termproxy: switch from clap to pico-args for CLI argument handling
+  * switch from clap to pico-args for CLI argument handling
 
  -- Proxmox Support Team <support@proxmox.com>  Thu, 26 Oct 2023 17:29:37 +0200
 

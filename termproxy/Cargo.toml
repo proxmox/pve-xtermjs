@@ -1,7 +1,7 @@
 [package]
 name = "proxmox-termproxy"
 description = "Execute a terminal command and proxy I/O via network"
-version = "1.0.1"
+version = "1.1.0"
 authors = [
     "Proxmox Support Team <support@proxmox.com>",
     "for xterm.js parts: The xterm.js authors <https://github.com/xtermjs/xterm.js>",
