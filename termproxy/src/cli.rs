@@ -53,7 +53,8 @@ pub struct Options {
     pub terminal_command: Vec<OsString>,
     /// The port or FD that termproxy will listen on for an incoming conection
     pub listen_port: PortOrFd,
-    /// The port (or unix socket path) of the local privileged daemon that authentication is relayed to. Defaults to port `85`
+    /// The port (or unix socket path) of the local privileged daemon that authentication is
+    /// relayed to. Defaults to port `85`
     pub api_daemon_address: DaemonAddress,
     /// The ACL object path the 'acl_permission' is checked on
     pub acl_path: String,
@@ -95,9 +96,9 @@ impl Options {
                     (Some(authport), None) => DaemonAddress::Port(authport),
                     (None, Some(authsocket)) => DaemonAddress::UnixSocket(authsocket),
                     (None, None) => DaemonAddress::Port(85),
-                    (Some(_), Some(_)) => {
-                        bail!("conflicting options: --authport and --authsocket are mutually exclusive.")
-                    }
+                    (Some(_), Some(_)) => bail!(
+                        "conflicting options: --authport and --authsocket are mutually exclusive."
+                    ),
                 }
             },
             acl_path: args.value_from_str("--path")?,
