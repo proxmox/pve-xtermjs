@@ -11,8 +11,8 @@ Arguments:
   <terminal-cmd>...       The command to run connected via a proxied pty
 
 Options:
-      --authport <authport>       Port to relay auth-request, default 85
-      --authsocket <authsocket>   Unix socket to relay auth-request (conflicts with --authport)
+      --auth-port <port>          Port to relay auth-request, default 85
+      --auth-socket <socket>      Unix socket to relay auth-request (conflicts with --auth-port)
       --port-as-fd                Use <listen-port> as file descriptor.
       --path <path>               ACL object path to test <perm> on.
       --perm <perm>               Permission to test.
@@ -91,7 +91,12 @@ impl Options {
         let acl_path = args.value_from_str("--path")?;
         let acl_permission = args.opt_value_from_str("--perm")?;
         let api_daemon_address = {
-            let auth_port: Option<u16> = args.opt_value_from_str("--authport")?;
+            // TODO: remove with next major releases based on Debian trixie, after checking if all
+            // product switched to new auth-port variant!
+            let legacy_authport: Option<u16> = args.opt_value_from_str("--authport")?;
+            let auth_port: Option<u16> = args
+                .opt_value_from_str("--auth-port")?
+                .or_else(|| legacy_authport);
             let auth_socket: Option<String> = args.opt_value_from_str("--auth-socket")?;
             match (auth_port, auth_socket) {
                 (Some(auth_port), None) => DaemonAddress::Port(auth_port),
