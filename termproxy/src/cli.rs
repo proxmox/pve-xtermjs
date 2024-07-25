@@ -4,7 +4,7 @@ use std::os::fd::RawFd;
 use anyhow::{bail, Result};
 
 const CMD_HELP: &str = "\
-Usage: proxmox-termproxy <listen-port> [OPTIONS] --path <path> -- <terminal-cmd>...
+Usage: proxmox-termproxy [OPTIONS] --path <path> <listen-port> -- <terminal-cmd>...
 
 Arguments:
   <listen-port>           Port or file descriptor to listen for TCP connections
@@ -86,23 +86,33 @@ impl Options {
             bail!("missing terminal command or -- option-end marker, see '-h' for usage");
         }
 
+        let terminal_command = terminal_command.unwrap(); // checked above
+        let port_as_fd = args.contains("--port-as-fd");
+        let acl_path = args.value_from_str("--path")?;
+        let acl_permission = args.opt_value_from_str("--perm")?;
+        let api_daemon_address = {
+            let auth_port: Option<u16> = args.opt_value_from_str("--authport")?;
+            let auth_socket: Option<String> = args.opt_value_from_str("--auth-socket")?;
+            match (auth_port, auth_socket) {
+                (Some(auth_port), None) => DaemonAddress::Port(auth_port),
+                (None, Some(auth_socket)) => DaemonAddress::UnixSocket(auth_socket),
+                (None, None) => DaemonAddress::Port(85),
+                (Some(_), Some(_)) => bail!(
+                    "conflicting options: --auth-port and --auth-socket are mutually exclusive."
+                ),
+            }
+        };
+
+        // NOTE: free-form arguments are literally the next unused argument, so only get them after
+        // all options got parsed
+        let auth_port_or_fd = args.free_from_str()?;
+
         let options = Self {
-            terminal_command: terminal_command.unwrap(), // checked above
-            listen_port: PortOrFd::from_cli(args.free_from_str()?, args.contains("--port-as-fd"))?,
-            api_daemon_address: {
-                let authport: Option<u16> = args.opt_value_from_str("--authport")?;
-                let authsocket: Option<String> = args.opt_value_from_str("--authsocket")?;
-                match (authport, authsocket) {
-                    (Some(authport), None) => DaemonAddress::Port(authport),
-                    (None, Some(authsocket)) => DaemonAddress::UnixSocket(authsocket),
-                    (None, None) => DaemonAddress::Port(85),
-                    (Some(_), Some(_)) => bail!(
-                        "conflicting options: --authport and --authsocket are mutually exclusive."
-                    ),
-                }
-            },
-            acl_path: args.value_from_str("--path")?,
-            acl_permission: args.opt_value_from_str("--perm")?,
+            terminal_command,
+            listen_port: PortOrFd::from_cli(auth_port_or_fd, port_as_fd)?,
+            api_daemon_address,
+            acl_path,
+            acl_permission,
         };
 
         if !args.finish().is_empty() {
