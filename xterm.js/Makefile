@@ -68,7 +68,7 @@ download:
 .PHONY: upload
 upload: UPLOAD_DIST ?= $(DEB_DISTRIBUTION)
 upload: $(DEB)
-	tar cf - $(DEB) |ssh -X repoman@repo.proxmox.com -- upload --product pmg,pve,pbs --dist $(UPLOAD_DIST)
+	tar cf - $(DEB) |ssh -X repoman@repo.proxmox.com -- upload --product pmg,pve,pbs,pdm --dist $(UPLOAD_DIST)
 
 .PHONY: clean distclean
 distclean: clean
