@@ -1,3 +1,11 @@
+pve-xtermjs (5.5.0-1) bookworm; urgency=medium
+
+  * update main project to upstream stable release 5.5.0
+
+  * upgrade fit-addon to 0.9.0 and webgl-addon to 0.17.0
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 02 Apr 2025 21:11:20 +0200
+
 pve-xtermjs (5.3.0-3) bookworm; urgency=medium
 
   * fix #5063: load WebGL addon in try-block to avoid issues on Apple iOS
