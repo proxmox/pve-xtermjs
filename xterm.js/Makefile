@@ -10,8 +10,8 @@ DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 
 # for downloading new version use `make XTERMJS_VERSION=X.Y.Z download`
 XTERMJS_VERSION ?= $(DEB_VERSION_UPSTREAM)
-FIT_ADDON_VERSION = 0.8.0
-WEBGL_ADDON_VERSION = 0.16.0
+FIT_ADDON_VERSION = 0.9.0
+WEBGL_ADDON_VERSION = 0.17.0
 
 all:
 
@@ -51,12 +51,12 @@ X_EXCLUSIONS=$(foreach ADDON,$(EXCLUDED_ADDONS),--exclude=addons/$(ADDON))
 
 .PHONY: download
 download: XTERMJS_TGZ = xterm-$(XTERMJS_VERSION).tgz
-download: FIT_ADDON_TGZ = xterm-addon-fit-$(FIT_ADDON_VERSION).tgz
-download: WEBGL_ADDON_TGZ = xterm-addon-webgl-$(WEBGL_ADDON_VERSION).tgz
+download: FIT_ADDON_TGZ = addon-fit-$(FIT_ADDON_VERSION).tgz
+download: WEBGL_ADDON_TGZ = addon-webgl-$(WEBGL_ADDON_VERSION).tgz
 download:
-	wget https://registry.npmjs.org/xterm/-/$(XTERMJS_TGZ) -O $(XTERMJS_TGZ).tmp
-	wget https://registry.npmjs.org/xterm-addon-fit/-/$(FIT_ADDON_TGZ) -O $(FIT_ADDON_TGZ).tmp
-	wget https://registry.npmjs.org/xterm-addon-webgl/-/$(WEBGL_ADDON_TGZ) -O $(WEBGL_ADDON_TGZ).tmp
+	wget https://registry.npmjs.org/@xterm/xterm/-/$(XTERMJS_TGZ) -O $(XTERMJS_TGZ).tmp
+	wget https://registry.npmjs.org/@xterm/addon-fit/-/$(FIT_ADDON_TGZ) -O $(FIT_ADDON_TGZ).tmp
+	wget https://registry.npmjs.org/@xterm/addon-webgl/-/$(WEBGL_ADDON_TGZ) -O $(WEBGL_ADDON_TGZ).tmp
 	mv $(XTERMJS_TGZ).tmp $(XTERMJS_TGZ)
 	mv $(FIT_ADDON_TGZ).tmp $(FIT_ADDON_TGZ)
 	mv $(WEBGL_ADDON_TGZ).tmp $(WEBGL_ADDON_TGZ)
