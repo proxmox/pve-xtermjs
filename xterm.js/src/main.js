@@ -222,6 +222,12 @@ function runTerminal() {
 	    if (answer[0] === 79 && answer[1] === 75) { // "OK"
 		updateState(states.connected);
 		term.write(answer.slice(2));
+
+		// delay initial focus and resize to after next frame
+		requestAnimationFrame(() => requestAnimationFrame(() => {
+		    term.focus();
+		    fitAddon.fit();
+		}));
 	    } else {
 		socket.close();
 	    }
@@ -247,12 +253,6 @@ function runTerminal() {
     });
 
     socket.send(PVE.UserName + ':' + ticket + "\n");
-
-    // initial focus and resize
-    setTimeout(function() {
-	term.focus();
-	fitAddon.fit();
-    }, 250);
 }
 
 function getLxcStatus(callback) {
