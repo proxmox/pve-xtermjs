@@ -17,8 +17,8 @@ lto = true
 [dependencies]
 anyhow = "1"
 libc = "0.2.107"
-mio = { version = "0.8", features = [ "net", "os-ext" ] }
-nix = "0.26.1"
+mio = { version = "1", features = [ "net", "os-ext" ] }
+nix = { version = "0.29", features = ["fs", "ioctl", "process", "term"] }
 pico-args = "0.5"
 proxmox-io = "1"
-form_urlencoded = "1.1"
+form_urlencoded = "1.2"

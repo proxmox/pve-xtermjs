@@ -113,7 +113,7 @@ impl std::io::Read for Pty {
 
 impl std::io::Write for Pty {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        Ok(nix::unistd::write(self.primary.as_raw_fd(), buf)?)
+        Ok(nix::unistd::write(self.primary.as_fd(), buf)?)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
