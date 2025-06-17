@@ -21,5 +21,4 @@ mio = { version = "0.8", features = [ "net", "os-ext" ] }
 nix = "0.26.1"
 pico-args = "0.5"
 proxmox-io = "1"
-proxmox-lang = "1.1"
 form_urlencoded = "1.1"

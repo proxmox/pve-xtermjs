@@ -1,7 +1,7 @@
 use std::cmp::min;
 use std::collections::HashMap;
 use std::ffi::OsString;
-use std::io::{ErrorKind, Read, Write};
+use std::io::{Error, ErrorKind, Read, Write};
 use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::os::unix::net::UnixStream;
 use std::os::unix::process::CommandExt;
@@ -15,7 +15,6 @@ use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
 
 use proxmox_io::ByteBuffer;
-use proxmox_lang::error::io_err_other;
 
 mod cli;
 use crate::cli::{Options, PortOrFd};
@@ -254,7 +253,7 @@ fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<Pty> 
     let cmd_exe = full_cmd.next().unwrap();
     let params = full_cmd; // rest
 
-    let (mut pty, secondary_name) = Pty::new().map_err(io_err_other)?;
+    let (mut pty, secondary_name) = Pty::new().map_err(Error::other)?;
 
     let mut filtered_env: HashMap<OsString, OsString> = std::env::vars_os()
         .filter(|(k, _)| {
@@ -274,7 +273,7 @@ fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<Pty> 
 
     unsafe {
         command.pre_exec(move || {
-            make_controlling_terminal(&secondary_name).map_err(io_err_other)?;
+            make_controlling_terminal(&secondary_name).map_err(Error::other)?;
             Ok(())
         });
     }
