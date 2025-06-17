@@ -6,7 +6,7 @@ authors = [
     "Proxmox Support Team <support@proxmox.com>",
     "for xterm.js parts: The xterm.js authors <https://github.com/xtermjs/xterm.js>",
 ]
-edition = "2021"
+edition = "2024"
 license = "AGPL-3"
 
 exclude = [ "build", "debian" ]
