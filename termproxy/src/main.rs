@@ -337,11 +337,11 @@ fn do_main() -> Result<()> {
         for event in &events {
             let writable = event.is_writable();
             let readable = event.is_readable();
-            if event.is_read_closed() {
-                finished = true;
-            }
             match event.token() {
                 self::TCP => {
+                    if event.is_read_closed() {
+                        finished = true;
+                    }
                     if readable {
                         tcp_readable = true;
                     }
