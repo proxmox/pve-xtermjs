@@ -1,3 +1,10 @@
+proxmox-termproxy (2.0.2) trixie; urgency=medium
+
+  * deregister tcp handle from temporary Poll instance so it can actually be
+    used in our main Poll instance, as required by mio 1.0
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 25 Jun 2025 15:29:05 +0200
+
 proxmox-termproxy (2.0.1) trixie; urgency=medium
 
   * ignore hangup on the pty to avoid closing it before 'login' is done
