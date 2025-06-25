@@ -131,6 +131,7 @@ fn read_ticket_line(
             bail!("timed out");
         }
     }
+    poll.registry().deregister(stream)?;
 
     let newline_idx = &buf[..].iter().position(|&x| x == b'\n').unwrap();
 
