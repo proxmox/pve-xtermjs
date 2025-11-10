@@ -1,7 +1,7 @@
 use std::ffi::OsString;
 use std::os::fd::RawFd;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
 const CMD_HELP: &str = "\
 Usage: proxmox-termproxy [OPTIONS] --path <path> <listen-port> -- <terminal-cmd>...

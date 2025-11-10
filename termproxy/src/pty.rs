@@ -5,10 +5,10 @@
 use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd, RawFd};
 
 use nix::fcntl::OFlag;
-use nix::pty::{grantpt, posix_openpt, ptsname_r, unlockpt, PtyMaster};
+use nix::pty::{PtyMaster, grantpt, posix_openpt, ptsname_r, unlockpt};
 use nix::sys::stat::Mode;
 use nix::unistd::{dup2, setsid};
-use nix::{ioctl_write_int_bad, ioctl_write_ptr_bad, Result};
+use nix::{Result, ioctl_write_int_bad, ioctl_write_ptr_bad};
 
 ioctl_write_int_bad!(set_controlling_tty, libc::TIOCSCTTY);
 ioctl_write_ptr_bad!(set_size, libc::TIOCSWINSZ, nix::pty::Winsize);

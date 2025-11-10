@@ -9,7 +9,7 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 //use std::io::prelude::*;
 
-use anyhow::{bail, format_err, Result};
+use anyhow::{Result, bail, format_err};
 use mio::net::{TcpListener, TcpStream};
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
@@ -20,7 +20,7 @@ mod cli;
 use crate::cli::{Options, PortOrFd};
 
 mod pty;
-use crate::pty::{make_controlling_terminal, Pty};
+use crate::pty::{Pty, make_controlling_terminal};
 
 const MSG_TYPE_DATA: u8 = 0;
 const MSG_TYPE_RESIZE: u8 = 1;
