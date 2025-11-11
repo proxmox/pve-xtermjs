@@ -60,6 +60,8 @@ pub struct Options {
     pub acl_path: String,
     /// The ACL permission that the ticket, read from the stream, is required to have on 'acl_path'
     pub acl_permission: Option<String>,
+    /// User new-style 'vncticket' auth endpoint
+    pub vncticket_endpoint: bool,
 }
 
 impl Options {
@@ -108,6 +110,8 @@ impl Options {
             }
         };
 
+        let vncticket_endpoint = args.contains("--vncticket-endpoint");
+
         // NOTE: free-form arguments are literally the next unused argument, so only get them after
         // all options got parsed
         let auth_port_or_fd = args.free_from_str()?;
@@ -118,6 +122,7 @@ impl Options {
             api_daemon_address,
             acl_path,
             acl_permission,
+            vncticket_endpoint,
         };
 
         if !args.finish().is_empty() {

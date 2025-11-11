@@ -147,7 +147,11 @@ fn read_ticket_line(
     }
 }
 
-fn simple_auth_request<S: Read + Write>(mut stream: S, params: &[(&str, &str)]) -> Result<()> {
+fn simple_auth_request<S: Read + Write>(
+    mut stream: S,
+    endpoint: &str,
+    params: &[(&str, &str)],
+) -> Result<()> {
     let mut form = form_urlencoded::Serializer::new(String::new());
 
     for (name, value) in params {
@@ -158,13 +162,14 @@ fn simple_auth_request<S: Read + Write>(mut stream: S, params: &[(&str, &str)]) 
 
     let raw_request = format!(
         concat!(
-            "POST /api2/json/access/ticket HTTP/1.1\r\n",
+            "POST /api2/json/access/{} HTTP/1.1\r\n",
             "Connection: close\r\n",
             "User-Agent: termproxy/1.0\r\n",
             "Content-Type: application/x-www-form-urlencoded;charset=UTF-8\r\n",
             "Content-Length: {}\r\n",
             "\r\n"
         ),
+        endpoint,
         raw_body.len()
     );
 
@@ -184,10 +189,18 @@ fn simple_auth_request<S: Read + Write>(mut stream: S, params: &[(&str, &str)]) 
     }
 }
 
-fn authenticate(username: &[u8], ticket: &[u8], options: &Options, listen_port: u16) -> Result<()> {
+fn authenticate(authid: &[u8], ticket: &[u8], options: &Options, listen_port: u16) -> Result<()> {
     let mut post_fields: Vec<(&str, &str)> = Vec::with_capacity(5);
-    post_fields.push(("username", std::str::from_utf8(username)?));
-    post_fields.push(("password", std::str::from_utf8(ticket)?));
+
+    let endpoint = if options.vncticket_endpoint {
+        post_fields.push(("authid", std::str::from_utf8(authid)?));
+        post_fields.push(("vncticket", std::str::from_utf8(ticket)?));
+        "vncticket"
+    } else {
+        post_fields.push(("username", std::str::from_utf8(authid)?));
+        post_fields.push(("password", std::str::from_utf8(ticket)?));
+        "ticket"
+    };
     post_fields.push(("path", &options.acl_path));
     if let Some(perm) = options.acl_permission.as_ref() {
         post_fields.push(("privs", perm));
@@ -205,11 +218,11 @@ fn authenticate(username: &[u8], ticket: &[u8], options: &Options, listen_port: 
             let stream =
                 std::net::TcpStream::connect(std::net::SocketAddr::from(([127, 0, 0, 1], port)))?;
             stream.set_nodelay(true)?;
-            simple_auth_request(stream, &post_fields)
+            simple_auth_request(stream, endpoint, &post_fields)
         }
         cli::DaemonAddress::UnixSocket(ref path) => {
             let stream = UnixStream::connect(path)?;
-            simple_auth_request(stream, &post_fields)
+            simple_auth_request(stream, endpoint, &post_fields)
         }
     }
 }
@@ -298,10 +311,10 @@ fn do_main() -> Result<()> {
     let mut pty_buf = ByteBuffer::new();
     let mut tcp_buf = ByteBuffer::new();
 
-    let (username, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
+    let (authid, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
         .map_err(|err| format_err!("failed reading ticket: {err}"))?;
 
-    authenticate(&username, &ticket, &options, listen_port)?;
+    authenticate(&authid, &ticket, &options, listen_port)?;
 
     tcp_handle.write_all(b"OK").expect("error writing response");
 
