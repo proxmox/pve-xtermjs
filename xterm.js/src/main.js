@@ -19,6 +19,8 @@ var term,
     state = states.start,
     starttime = new Date();
 
+const remote = getQueryParameter('remote');
+const remote_type = getQueryParameter('remote-type');
 var type = getQueryParameter('console');
 var vmid = getQueryParameter('vmid');
 var vmname = getQueryParameter('vmname');
@@ -175,7 +177,11 @@ function createTerminal() {
     protocol = (location.protocol === 'https:') ? 'wss://' : 'ws://';
 
     var params = {};
-    var url = '/nodes/' + nodename;
+    var url = '';
+    if (remote) {
+        url += `/${remote_type}/remotes/${remote}/`;
+    }
+    url += `/nodes/${nodename}`;
     switch (type) {
 	case 'kvm':
 	    url += '/qemu/' + vmid;
@@ -252,7 +258,10 @@ function runTerminal() {
 	}, 250);
     });
 
-    socket.send(PVE.UserName + ':' + ticket + "\n");
+    // for remote sessions, this line needs to be sent by PDM
+    if (!remote) {
+        socket.send(`${PVE.UserName}:${ticket}\n`);
+    }
 }
 
 function getLxcStatus(callback) {
