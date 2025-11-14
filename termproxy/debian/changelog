@@ -1,3 +1,9 @@
+proxmox-termproxy (2.0.3) trixie; urgency=medium
+
+  * termproxy: allow using new vncticket endpoint with token support
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 14 Nov 2025 10:41:52 +0100
+
 proxmox-termproxy (2.0.2) trixie; urgency=medium
 
   * deregister tcp handle from temporary Poll instance so it can actually be
