@@ -1,3 +1,9 @@
+pve-xtermjs (5.5.0-3) trixie; urgency=medium
+
+  * xtermjs: add support for remote node shells via PDM
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 14 Nov 2025 10:38:29 +0100
+
 pve-xtermjs (5.5.0-2) bookworm; urgency=medium
 
   * fix #6223: fit terminal size only after backend responded with success to
