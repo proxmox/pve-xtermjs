@@ -287,7 +287,7 @@ fn run_pty<'a>(mut full_cmd: impl Iterator<Item = &'a OsString>) -> Result<Pty> 
 
     unsafe {
         command.pre_exec(move || {
-            make_controlling_terminal(&secondary_name).map_err(Error::other)?;
+            make_controlling_terminal(&secondary_name)?;
             Ok(())
         });
     }
