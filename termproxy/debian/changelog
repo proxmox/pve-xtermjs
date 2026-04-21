@@ -1,3 +1,11 @@
+proxmox-termproxy (1.1.1) bookworm; urgency=medium
+
+  * cli: document vncticket-endpoint option.
+
+  * add verify-port option and support pinning ticket with --ticket-fd option.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Apr 2026 20:50:37 +0200
+
 proxmox-termproxy (1.1.0) bookworm; urgency=medium
 
   * add new `--auth-socket` CLI option to allow using UNIX sockets for auth
