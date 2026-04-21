@@ -16,6 +16,7 @@ Options:
       --port-as-fd                Use <listen-port> as file descriptor.
       --path <path>               ACL object path to test <perm> on.
       --perm <perm>               Permission to test.
+      --vncticket-endpoint        Use the 'vncticket' API endpoint for authentication.
       -h, --help                  Print help
 ";
 
@@ -60,7 +61,7 @@ pub struct Options {
     pub acl_path: String,
     /// The ACL permission that the ticket, read from the stream, is required to have on 'acl_path'
     pub acl_permission: Option<String>,
-    /// User new-style 'vncticket' auth endpoint
+    /// Use new-style 'vncticket' auth endpoint
     pub vncticket_endpoint: bool,
 }
 
