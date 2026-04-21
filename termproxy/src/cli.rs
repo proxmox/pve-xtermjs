@@ -13,9 +13,10 @@ Arguments:
 Options:
       --auth-port <port>          Port to relay auth-request, default 85
       --auth-socket <socket>      Unix socket to relay auth-request (conflicts with --auth-port)
-      --port-as-fd                Use <listen-port> as file descriptor.
+      --port-as-fd                Use <listen-port> as file descriptor. Implies --verify-port.
       --path <path>               ACL object path to test <perm> on.
       --perm <perm>               Permission to test.
+      --verify-port               Also pass port to API endpoint for authentication.
       --vncticket-endpoint        Use the 'vncticket' API endpoint for authentication.
       -h, --help                  Print help
 ";
@@ -63,6 +64,8 @@ pub struct Options {
     pub acl_permission: Option<String>,
     /// Use new-style 'vncticket' auth endpoint
     pub vncticket_endpoint: bool,
+    /// Pass along port when calling authentication API endpoint.
+    pub verify_port: bool,
 }
 
 impl Options {
@@ -112,6 +115,7 @@ impl Options {
         };
 
         let vncticket_endpoint = args.contains("--vncticket-endpoint");
+        let verify_port = args.contains("--verify-port");
 
         // NOTE: free-form arguments are literally the next unused argument, so only get them after
         // all options got parsed
@@ -124,6 +128,7 @@ impl Options {
             acl_path,
             acl_permission,
             vncticket_endpoint,
+            verify_port,
         };
 
         if !args.finish().is_empty() {
