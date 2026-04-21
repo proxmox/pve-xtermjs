@@ -209,7 +209,7 @@ fn authenticate(authid: &[u8], ticket: &[u8], options: &Options, listen_port: u1
     // if the listen-port was passed indirectly via an FD, it's encoded also in the ticket so that
     // the access system can enforce that the users actually can access that port.
     let port_str;
-    if options.use_listen_port_as_fd() {
+    if options.verify_port || options.use_listen_port_as_fd() {
         port_str = listen_port.to_string();
         post_fields.push(("port", &port_str));
     }
