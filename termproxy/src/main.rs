@@ -304,6 +304,12 @@ const PTY: Token = Token(1);
 fn do_main() -> Result<()> {
     let options = Options::from_env()?;
 
+    let mut pinned_ticket = Vec::new();
+    if let Some(ticket_fd) = options.ticket_fd {
+        let mut pin_ticket_file = unsafe { std::fs::File::from_raw_fd(ticket_fd) };
+        pin_ticket_file.read_to_end(&mut pinned_ticket)?;
+    };
+
     let (mut tcp_handle, listen_port) =
         listen_and_accept("localhost", &options.listen_port, Duration::new(10, 0))
             .map_err(|err| format_err!("failed waiting for client: {err}"))?;
@@ -313,6 +319,11 @@ fn do_main() -> Result<()> {
 
     let (authid, ticket) = read_ticket_line(&mut tcp_handle, &mut pty_buf, Duration::new(10, 0))
         .map_err(|err| format_err!("failed reading ticket: {err}"))?;
+
+    if !pinned_ticket.is_empty() && pinned_ticket != ticket.as_ref() {
+        // Use the same error message to avoid leaking information.
+        bail!("authentication request failed");
+    }
 
     authenticate(&authid, &ticket, &options, listen_port)?;
 
