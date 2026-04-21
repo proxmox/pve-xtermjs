@@ -16,6 +16,7 @@ Options:
       --port-as-fd                Use <listen-port> as file descriptor. Implies --verify-port.
       --path <path>               ACL object path to test <perm> on.
       --perm <perm>               Permission to test.
+      --ticket-fd <fd>            File descriptor with ticket to be pinned for the current instance.
       --verify-port               Also pass port to API endpoint for authentication.
       --vncticket-endpoint        Use the 'vncticket' API endpoint for authentication.
       -h, --help                  Print help
@@ -62,6 +63,8 @@ pub struct Options {
     pub acl_path: String,
     /// The ACL permission that the ticket, read from the stream, is required to have on 'acl_path'
     pub acl_permission: Option<String>,
+    /// File descriptor with ticket to be pinned for the current instance.
+    pub ticket_fd: Option<RawFd>,
     /// Use new-style 'vncticket' auth endpoint
     pub vncticket_endpoint: bool,
     /// Pass along port when calling authentication API endpoint.
@@ -114,6 +117,8 @@ impl Options {
             }
         };
 
+        let ticket_fd = args.opt_value_from_str("--ticket-fd")?;
+
         let vncticket_endpoint = args.contains("--vncticket-endpoint");
         let verify_port = args.contains("--verify-port");
 
@@ -127,6 +132,7 @@ impl Options {
             api_daemon_address,
             acl_path,
             acl_permission,
+            ticket_fd,
             vncticket_endpoint,
             verify_port,
         };
