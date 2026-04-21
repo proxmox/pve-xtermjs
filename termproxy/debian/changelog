@@ -1,3 +1,15 @@
+proxmox-termproxy (2.1.0) trixie; urgency=medium
+
+  * re-build with rust 1.94.1 and newer crate dependencies.
+
+  * cli: document vncticket-endpoint option.
+
+  * add verify-port option and support pinning ticket with --ticket-fd option.
+
+  * avoid allocating in `pre_exec` closure.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Apr 2026 20:10:42 +0200
+
 proxmox-termproxy (2.0.3) trixie; urgency=medium
 
   * termproxy: allow using new vncticket endpoint with token support
