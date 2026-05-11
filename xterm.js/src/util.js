@@ -132,11 +132,17 @@ function API2Request(reqOpts) {
 function getTerminalSettings() {
     var res = {};
     var settings = ['fontSize', 'fontFamily', 'letterSpacing', 'lineHeight'];
+    var booleanSettings = ['reflowCursorLine', 'rescaleOverlappingGlyphs'];
     if(localStorage) {
 	settings.forEach(function(setting) {
 	    var val = localStorage.getItem('pve-xterm-' + setting);
 	    if (val !== undefined && val !== null) {
 		res[setting] = val;
+	    }
+	});
+	booleanSettings.forEach(function(setting) {
+	    if (localStorage.getItem('pve-xterm-' + setting) === 'true') {
+		res[setting] = true;
 	    }
 	});
     }
