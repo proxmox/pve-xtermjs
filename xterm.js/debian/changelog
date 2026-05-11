@@ -1,3 +1,30 @@
+pve-xtermjs (6.0.0-1) trixie; urgency=medium
+
+  * update main project to upstream stable release 6.0.0 and upgrade fit-addon
+    to 0.11.0 and webgl-addon to 0.19.0. This includes the following user
+    noticeable changes:
+    - support synchronized output (DEC mode 2026), letting full-screen terminal
+      applications like text-mode installers, htop or tmux repaint the screen
+      atomically and without visible flicker over the websocket transport.
+    - the xtermjs console now shows a fading scroll bar indicator on scroll
+      activity, derived from VS Code's scroll bar implementation; the previous
+      upstream CSS hid the scroll area entirely.
+    - drop the default Alt+Arrow to Ctrl+Arrow key remapping, following
+      upstream. Users who relied on Alt-based word-wise cursor navigation in
+      the embedded shell need to press Ctrl+Arrow instead.
+
+  * read optional 'reflowCursorLine' and 'rescaleOverlappingGlyphs' boolean
+    flags from localStorage, paired with new opt-in checkboxes in the
+    xterm.js settings panel of pve-manager. Both stay off by default since
+    each has narrow edge cases upstream wanted users to opt into knowingly.
+
+  * also forward an optional 'scrollback' localStorage setting to the
+    terminal, in preparation for a future opt-in UI to bump the scrollback
+    buffer beyond the default of 1000 lines without needing another
+    pve-xtermjs bump.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 11 May 2026 18:47:25 +0200
+
 pve-xtermjs (5.5.0-3) trixie; urgency=medium
 
   * xtermjs: add support for remote node shells via PDM
