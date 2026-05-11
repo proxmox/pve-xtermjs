@@ -131,7 +131,7 @@ function API2Request(reqOpts) {
 
 function getTerminalSettings() {
     var res = {};
-    var settings = ['fontSize', 'fontFamily', 'letterSpacing', 'lineHeight'];
+    var settings = ['fontSize', 'fontFamily', 'letterSpacing', 'lineHeight', 'scrollback'];
     var booleanSettings = ['reflowCursorLine', 'rescaleOverlappingGlyphs'];
     if(localStorage) {
 	settings.forEach(function(setting) {
