@@ -28,6 +28,29 @@ var nodename = getQueryParameter('node');
 var cmd = getQueryParameter('cmd');
 var cmdOpts = getQueryParameter('cmd-opts');
 
+function getBaseUrl() {
+    var baseUrl = '';
+    if (remote) {
+	baseUrl += `/${remote_type}/remotes/${remote}`;
+    } else {
+	baseUrl += `/nodes/${nodename}`;
+    }
+
+    if (type === 'kvm') {
+	baseUrl += `/qemu/${vmid}`;
+    } else if (type === 'lxc') {
+	baseUrl += `/lxc/${vmid}`;
+    } else if (remote) {
+	baseUrl += `/nodes/${nodename}`;
+    }
+
+    return baseUrl;
+}
+
+const baseUrl = getBaseUrl();
+const statusUrlSuffix = (remote ? '/status' : '/status/current');
+const startUrlSuffix = (remote ? '/start' : '/status/start');
+
 function updateState(newState, msg, code) {
     var timeout, severity, message;
     switch (newState) {
@@ -104,15 +127,15 @@ const fitAddon = new FitAddon.FitAddon();
 
 createTerminal();
 
-function startConnection(url, params, term) {
+function startConnection(params, term) {
     API2Request({
 	method: 'POST',
 	params: params,
-	url: url + '/termproxy',
+	url: baseUrl + '/termproxy',
 	success: function(result) {
 	    var port = encodeURIComponent(result.data.port);
 	    ticket = result.data.ticket;
-	    socketURL = protocol + location.hostname + ((location.port) ? (':' + location.port) : '') + '/api2/json' + url + '/vncwebsocket?port=' + port + '&vncticket=' + encodeURIComponent(ticket);
+	    socketURL = protocol + location.hostname + ((location.port) ? (':' + location.port) : '') + '/api2/json' + baseUrl + '/vncwebsocket?port=' + port + '&vncticket=' + encodeURIComponent(ticket);
 
 	    socket = new WebSocket(socketURL, 'binary');
 	    socket.binaryType = 'arraybuffer';
@@ -128,10 +151,9 @@ function startConnection(url, params, term) {
 }
 
 function startGuest() {
-    let api_type = type === 'kvm' ? 'qemu' : 'lxc';
     API2Request({
 	method: 'POST',
-	url: `/nodes/${nodename}/${api_type}/${vmid}/status/start`,
+	url: baseUrl + startUrlSuffix,
 	success: function(result) {
 	    showMsg('Guest started successfully', 0);
 	    setTimeout(function() {
@@ -177,18 +199,7 @@ function createTerminal() {
     protocol = (location.protocol === 'https:') ? 'wss://' : 'ws://';
 
     var params = {};
-    var url = '';
-    if (remote) {
-        url += `/${remote_type}/remotes/${remote}/`;
-    }
-    url += `/nodes/${nodename}`;
     switch (type) {
-	case 'kvm':
-	    url += '/qemu/' + vmid;
-	    break;
-	case 'lxc':
-	    url += '/lxc/' + vmid;
-	    break;
 	case 'upgrade':
 	    params.cmd = 'upgrade';
 	    break;
@@ -202,10 +213,10 @@ function createTerminal() {
     if (type === 'kvm' || type === 'lxc') {
 	API2Request({
 	    method: 'GET',
-	    url: `${url}/status/current`,
+	    url: baseUrl + statusUrlSuffix,
 	    success: function(result) {
 		if (result.data.status === 'running') {
-		    startConnection(url, params, term);
+		    startConnection(params, term);
 		} else {
 		    document.getElementById('connect_dlg').classList.add('pve_open');
 		}
@@ -215,7 +226,7 @@ function createTerminal() {
 	    },
 	});
     } else {
-	startConnection(url, params, term);
+	startConnection(params, term);
     }
 }
 
@@ -267,7 +278,7 @@ function runTerminal() {
 function getLxcStatus(callback) {
     API2Request({
 	method: 'GET',
-	url: '/nodes/' + nodename + '/lxc/' + vmid + '/status/current',
+	url: baseUrl + statusUrlSuffix,
 	success: function(result) {
 	    if (typeof callback === 'function') {
 		callback(true, result);
@@ -286,12 +297,18 @@ function checkMigration() {
     if (apitype === 'kvm') {
 	apitype = 'qemu';
     }
+
+    var url = '/cluster/resources';
+    if (remote) {
+	url = `/${remote_type}/remotes/${remote}/resources`;
+    }
+
     API2Request({
 	method: 'GET',
 	params: {
 	    type: 'vm'
 	},
-	url: '/cluster/resources',
+	url: url,
 	success: function(result) {
 	    // if not yet migrated , wait and try again
 	    // if not migrating and stopped, cancel
