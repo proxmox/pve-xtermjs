@@ -320,9 +320,13 @@ function checkMigration() {
 		    if (migrated) {
 			if (started) {
 			    // goto different node
-			    location.href = '?console=' + type +
+			    let url = '?console=' + type +
 				'&xtermjs=1&vmid=' + vmid + '&vmname=' +
 				vmname + '&node=' + entity.node;
+			    if (remote) {
+				url += '&remote=' + remote + '&remote-type=' + remote_type;
+			    }
+			    location.href = url;
 			} else {
 			    // wait again
 			    updateState(states.reconnecting, 'waiting for migration to finish...');
