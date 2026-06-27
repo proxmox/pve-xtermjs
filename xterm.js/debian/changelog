@@ -1,3 +1,11 @@
+pve-xtermjs (6.0.0-2) trixie; urgency=medium
+
+  * support being driven by the Proxmox Datacenter Manager (PDM) to open guest
+    consoles on remote nodes, keeping the session on the remote when a guest
+    migrates to another node.
+
+ -- Proxmox Support Team <support@proxmox.com>  Sat, 27 Jun 2026 18:41:42 +0200
+
 pve-xtermjs (6.0.0-1) trixie; urgency=medium
 
   * update main project to upstream stable release 6.0.0 and upgrade fit-addon
