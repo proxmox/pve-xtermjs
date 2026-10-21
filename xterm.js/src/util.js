@@ -57,7 +57,7 @@ function hideMsg() {
     status_bar.classList.remove('open');
 }
 
-function getQueryParameter(name) {
+function getQueryParameter(name, regex) {
     var params = location.search.slice(1).split('&');
     var result = "";
     params.forEach(function(param) {
@@ -66,6 +66,11 @@ function getQueryParameter(name) {
 	    result = components.slice(1).join('=');
 	}
     });
+
+    if (regex && result !== "" && !result.match(regex)) {
+	throw `Invalid query parameter '${name}'`;
+    }
+
     return result;
 }
 

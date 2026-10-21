@@ -19,14 +19,25 @@ var term,
     state = states.start,
     starttime = new Date();
 
-const remote = getQueryParameter('remote');
-const remote_type = getQueryParameter('remote-type');
-var type = getQueryParameter('console');
-var vmid = getQueryParameter('vmid');
-var vmname = getQueryParameter('vmname');
-var nodename = getQueryParameter('node');
-var cmd = getQueryParameter('cmd');
-var cmdOpts = getQueryParameter('cmd-opts');
+// matches the backend's safe ID format; as the first character excludes '.', neither '.' nor '..'
+// can form a path segment
+const safeIdRegex = /^[A-Za-z0-9_][A-Za-z0-9._-]*$/;
+
+var remote, remote_type, type, vmid, vmname, nodename, cmd, cmdOpts;
+try {
+    remote = getQueryParameter('remote', safeIdRegex);
+    remote_type = getQueryParameter('remote-type', /^[A-Za-z]+$/);
+    type = getQueryParameter('console', /^[A-Za-z]+$/);
+    vmid = getQueryParameter('vmid', /^[0-9]+$/);
+    vmname = getQueryParameter('vmname');
+    nodename = getQueryParameter('node', safeIdRegex);
+    cmd = getQueryParameter('cmd', safeIdRegex);
+    cmdOpts = getQueryParameter('cmd-opts');
+} catch (error) {
+    updateState(states.disconnected, error);
+    // re-throwing here stops execution of the remaining code
+    throw error;
+}
 
 function getBaseUrl() {
     var baseUrl = '';
