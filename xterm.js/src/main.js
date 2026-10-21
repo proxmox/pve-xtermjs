@@ -215,9 +215,9 @@ function createTerminal() {
 	    params.cmd = 'upgrade';
 	    break;
 	case 'cmd':
-	    params.cmd = decodeURI(cmd);
+	    params.cmd = cmd;
 	    if (cmdOpts !== undefined && cmdOpts !== null && cmdOpts !== "") {
-		params['cmd-opts'] = decodeURI(cmdOpts);
+		params['cmd-opts'] = cmdOpts;
 	    }
 	    break;
     }
@@ -331,13 +331,20 @@ function checkMigration() {
 		    if (migrated) {
 			if (started) {
 			    // goto different node
-			    let url = '?console=' + type +
-				'&xtermjs=1&vmid=' + vmid + '&vmname=' +
-				vmname + '&node=' + entity.node;
-			    if (remote) {
-				url += '&remote=' + remote + '&remote-type=' + remote_type;
+			    let params = new URLSearchParams({
+				console: type,
+				xtermjs: 1,
+				vmid: vmid,
+				node: entity.node,
+			    });
+			    if (vmname) {
+				params.set('vmname', vmname);
 			    }
-			    location.href = url;
+			    if (remote) {
+				params.set('remote', remote);
+				params.set('remote-type', remote_type);
+			    }
+			    location.href = `?${params}`;
 			} else {
 			    // wait again
 			    updateState(states.reconnecting, 'waiting for migration to finish...');

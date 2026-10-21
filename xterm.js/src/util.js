@@ -58,20 +58,22 @@ function hideMsg() {
 }
 
 function getQueryParameter(name, regex) {
-    var params = location.search.slice(1).split('&');
-    var result = "";
-    params.forEach(function(param) {
-	var components = param.split('=');
-	if (components[0] === name) {
-	    result = components.slice(1).join('=');
-	}
-    });
+    let params = new URLSearchParams(location.search);
+    let value = params.get(name);
 
-    if (regex && result !== "" && !result.match(regex)) {
+    if (value === undefined || value === null || value === '') {
+	return undefined;
+    }
+
+    if (value.match(/[/?;]/)) {
 	throw `Invalid query parameter '${name}'`;
     }
 
-    return result;
+    if (regex && !value.match(regex)) {
+	throw `Invalid query parameter '${name}'`;
+    }
+
+    return value;
 }
 
 function API2Request(reqOpts) {
