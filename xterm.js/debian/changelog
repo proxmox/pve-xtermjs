@@ -1,3 +1,18 @@
+pve-xtermjs (6.0.0-3) trixie; urgency=medium
+
+  * stop the terminal when an upgrade console closes, like for shell and
+    command consoles. Previously, closing an upgrade console more than five
+    seconds after it started, for example by exiting its shell after the
+    upgrade, left the page stuck at 'Detecting migration...' until it was
+    closed.
+
+  * validate the console's query parameters before using them to build API
+    request paths, so that a crafted console link can no longer make the page
+    send authenticated requests to other API endpoints. On an invalid
+    parameter, the console now shows an error naming it instead of connecting.
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 23 Oct 2026 18:42:41 +0200
+
 pve-xtermjs (6.0.0-2) trixie; urgency=medium
 
   * support being driven by the Proxmox Datacenter Manager (PDM) to open guest
