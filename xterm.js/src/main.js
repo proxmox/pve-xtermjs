@@ -379,7 +379,7 @@ function checkMigration() {
 function tryReconnect(event) {
     var time_since_started = new Date() - starttime;
     var type = getQueryParameter('console');
-    if (time_since_started < 5*1000 || type === 'shell' || type === 'cmd') { // 5 seconds
+    if (time_since_started < 5*1000 || type === 'shell' || type === 'cmd' || type === 'upgrade') { // 5 seconds
 	stopTerminal(event);
 	return;
     }
